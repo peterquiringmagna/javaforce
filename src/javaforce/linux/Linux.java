@@ -1622,7 +1622,7 @@ public class Linux implements X11Listener {
   }
 
   /* Test */
-  public static void main(String args[]) {
+  public static void main(String[] args) {
     if (args.length == 0) {
       JFLog.log("Usage : Linux cmd");
     }
@@ -1636,6 +1636,9 @@ public class Linux implements X11Listener {
         break;
       case "x11":
         test_x11();
+        break;
+      default:
+        JFLog.log("Unknown cmd:" + args[0]);
         break;
     }
   }
