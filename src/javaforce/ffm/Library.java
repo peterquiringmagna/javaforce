@@ -115,7 +115,13 @@ public class Library {
     boolean ok = true;
     for(int i=0;i<libs.length;i++) {
       if (libs[i].path == null) {
-        if (libs[i].name.equals("GL") && JF.isWindows()) continue;  //known issue
+        if (JF.isWindows()) {
+          String name = libs[i].name;
+          if (name.equals("GL") || name.equals("v4l2")) {
+            //N/A on Windows
+            continue;
+          }
+        }
         JFLog.log("Unable to find library:" + libs[i].name);
         ok = false;
       }
