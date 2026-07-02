@@ -64,7 +64,6 @@ public class VideoApp extends javax.swing.JFrame {
    * @param args the command line arguments
    */
   public static void main(String args[]) {
-    MediaCoder.init();
     java.awt.EventQueue.invokeLater(new Runnable() {
       public void run() {
         VideoApp app = new VideoApp();

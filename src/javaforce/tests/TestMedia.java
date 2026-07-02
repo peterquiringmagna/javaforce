@@ -4,7 +4,6 @@ import java.io.*;
 import java.util.*;
 
 import javaforce.*;
-import javaforce.ffm.*;
 import javaforce.media.*;
 import javaforce.voip.*;
 
@@ -26,8 +25,6 @@ public class TestMedia implements MediaIO {
     if (args.length == 0) {
       usage();
     }
-//    FFM.disable();
-    MediaCoder.init();
     for(int a=0;a<args.length;a++) {
       int idx = args[a].indexOf('=');
       if (idx != -1) {

@@ -128,7 +128,6 @@ public class ViewerApp extends javax.swing.JFrame {
         FFM.disable();
       }
     }
-    MediaCoder.init();
     java.awt.EventQueue.invokeLater(new Runnable() {
       public void run() {
         new ViewerApp().setVisible(true);

@@ -18,7 +18,6 @@ import common.Config;
 
 public class App extends Thread implements ActionListener {
   public static void main(String args[]) {
-    MediaCoder.init();
     App server = new App();
     server.start();
   }

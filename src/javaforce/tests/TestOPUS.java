@@ -12,7 +12,6 @@ import javaforce.codec.opus.*;
 public class TestOPUS {
   private static final int frame_size = 960;
   public static void main(String[] args) {
-    MediaCoder.init();
     MediaCoder.setLogging(true);
     try {
       JFLog.log("frame_size=" + frame_size);

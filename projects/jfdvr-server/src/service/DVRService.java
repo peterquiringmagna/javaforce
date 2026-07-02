@@ -44,7 +44,6 @@ public class DVRService implements RTSPServerInterface {
   private int log;
 
   public static void serviceStart(String[] args) {
-    MediaCoder.init();
     if (dvrService != null) return;
     for(String arg : args) {
       switch (arg) {

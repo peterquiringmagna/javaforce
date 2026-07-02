@@ -30,7 +30,6 @@ public class Service extends Thread implements RTSPServerInterface {
   private int log;
 
   public static void serviceStart(String[] args) {
-    MediaCoder.init();
     if (service != null) return;
     for(String arg : args) {
       switch (arg) {

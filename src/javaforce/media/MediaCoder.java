@@ -33,10 +33,6 @@ public class MediaCoder {
     return ctx != 0;
   }
 
-  /** Legacy method. */
-  @Deprecated
-  public static void init() {}
-
   /** Sets debug logging in media framework. */
   public static void setLogging(boolean state) {
     MediaAPI.getInstance().mediaSetLogging(state);

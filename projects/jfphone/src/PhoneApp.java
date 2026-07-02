@@ -11,7 +11,6 @@ import javaforce.voip.*;
 
 public class PhoneApp extends JFrame implements WindowListener, WindowController {
   public static void main(String[] args) {
-    MediaCoder.init();
     if (args.length > 0) {
       if (args[0].equals("debug")) {
         //enable debug channels

@@ -142,7 +142,6 @@ public class MediaApp extends javax.swing.JFrame {
    * @param args the command line arguments
    */
   public static void main(String args[]) {
-    MediaCoder.init();
     MediaApp.args = args;
     java.awt.EventQueue.invokeLater(new Runnable() {
       public void run() {
