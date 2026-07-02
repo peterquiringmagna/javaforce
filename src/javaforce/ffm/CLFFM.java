@@ -30,9 +30,6 @@ public class CLFFM implements CLAPI {
     return instance;
   }
 
-  private MethodHandle clLoadLibrary;
-  public boolean clLoadLibrary(String file) { try { Arena arena = Arena.ofAuto(); boolean _ret_value_ = (boolean)clLoadLibrary.invokeExact(arena.allocateFrom(file));return _ret_value_; } catch (Throwable t) { JFLog.log(t);  return false;} }
-
   private MethodHandle clCreate;
   public long clCreate(String src,int type) { try { Arena arena = Arena.ofAuto(); long _ret_value_ = (long)clCreate.invokeExact(arena.allocateFrom(src),type);return _ret_value_; } catch (Throwable t) { JFLog.log(t);  return -1;} }
 
@@ -82,11 +79,13 @@ public class CLFFM implements CLAPI {
   private boolean ffm_init() {
     MethodHandle init;
     ffm = FFM.getInstance();
-    init = ffm.getFunction("CLAPIinit", ffm.getFunctionDesciptor(ValueLayout.JAVA_BOOLEAN));
+    Library[] libs = new Library[] {new Library("OpenCL")};
+    Library.findLibraries(null, libs);
+    Arena arena = Arena.ofAuto();
+    init = ffm.getFunction("CLAPIinit", ffm.getFunctionDesciptor(ValueLayout.JAVA_BOOLEAN,ADDRESS));
     if (init == null) return false;
-    try {if (!(boolean)init.invokeExact()) return false;} catch (Throwable t) {JFLog.log(t); return false;}
+    try {if (!(boolean)init.invokeExact(libs[0].getPath(arena))) return false;} catch (Throwable t) {JFLog.log(t); return false;}
 
-    clLoadLibrary = ffm.getFunctionPtr("_clLoadLibrary", ffm.getFunctionDesciptor(JAVA_BOOLEAN,ADDRESS));
     clCreate = ffm.getFunctionPtr("_clCreate", ffm.getFunctionDesciptor(JAVA_LONG,ADDRESS,JAVA_INT));
     clKernel = ffm.getFunctionPtr("_clKernel", ffm.getFunctionDesciptor(JAVA_LONG,JAVA_LONG,ADDRESS));
     clCreateBuffer = ffm.getFunctionPtr("_clCreateBuffer", ffm.getFunctionDesciptor(JAVA_LONG,JAVA_LONG,JAVA_INT,JAVA_INT));

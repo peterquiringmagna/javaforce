@@ -26,32 +26,8 @@ public class CL {
     if (instance == null) {
       instance = new CL();
       instance.api = CLAPI.getInstance();
-      if (!instance.init()) {
-        return null;
-      }
     }
     return instance;
-  }
-
-  private boolean init() {
-    File[] sysFolders;
-    String apphome = System.getProperty("java.app.home");
-    String name = "OpenCL";
-    if (apphome == null) apphome = ".";
-    if (JF.isWindows()) {
-      sysFolders = new File[] {new File(System.getenv("windir") + "\\system32"), new File(apphome), new File(".")};
-      name = name.toLowerCase();
-    } else if (JF.isMac()) {
-      sysFolders = new File[] {new File("/System/Library/Frameworks/OpenCL.framework/Versions/Current/Libraries"), new File(apphome), new File(".")};
-    } else {
-      sysFolders = new File[] {new File("/usr/lib"), new File(Library.getArchLibFolder())};
-    }
-    Library[] libs = {new Library(name)};
-    if (!Library.findLibraries(sysFolders, libs)) {
-      JFLog.log("Error:Unable to find OpenCL library");
-      return false;
-    }
-    return api.clLoadLibrary(libs[0].getPath());
   }
 
   /** Create OpenGL Context with source code.

@@ -45,11 +45,23 @@ public class Library {
     String apphome = System.getProperty("java.app.home");
     if (apphome == null) apphome = ".";
     if (JF.isWindows()) {
-      return new File[] {new File(apphome), new File(System.getenv("appdata") + "/ffmpeg"), new File(".")};
+      return new File[] {
+        new File(apphome),
+        new File(System.getenv("appdata") + "/ffmpeg"),
+        new File(System.getenv("windir") + "\\system32"),
+        new File("."),
+      };
     } else if (JF.isMac()) {
-      return new File[] {new File(apphome), new File(".")};
+      return new File[] {
+        new File(apphome),
+        new File("/System/Library/Frameworks/OpenCL.framework/Versions/Current/Libraries"),
+        new File("."),
+      };
     } else {
-      return new File[] {new File("/usr/lib"), new File(getArchLibFolder())};
+      return new File[] {
+        new File("/usr/lib"),
+        new File(getArchLibFolder()),
+      };
     }
   }
 
@@ -60,7 +72,7 @@ public class Library {
       if (JF.isUnix()) {
         libs[i].name = "lib" + libs[i].name;
       }
-      libs[i].match = libs[i].name + "([-][0-9]*)?" + ext + "([.][0-9]*)*";
+      libs[i].match = libs[i].name.toLowerCase() + "([-][0-9]*)?" + ext + "([.][0-9]*)*";
     }
     if (folders == null) {
       folders = getSysFolders();
@@ -83,7 +95,7 @@ public class Library {
       });
       for (int a = 0; a < files.length; a++) {
         File file = files[a];
-        String fileName = files[a].getName();
+        String fileName = files[a].getName().toLowerCase();
         if (file.isDirectory()) {
           continue;
         } else if (fileName.contains(ext)) {

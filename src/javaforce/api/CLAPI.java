@@ -7,13 +7,13 @@ import javaforce.ffm.*;
  * @author pquiring
  */
 
+@NativeLibrary("OpenCL")
 public interface CLAPI {
 
   public static CLAPI getInstance() {
     return CLFFM.getInstance();
   }
 
-  public boolean clLoadLibrary(String file);
   public long clCreate(String src, int type);
   public long clKernel(long ctx, String func);
   public long clCreateBuffer(long ctx, int size, int type);
