@@ -541,26 +541,31 @@ public class FFM {
 
   public static void X11Listener_trayIconAdded(int count) {
     X11Listener listener = X11ListenerBin.get();
+    if (listener == null) return;
     listener.trayIconAdded(count);
   }
 
   public static void X11Listener_trayIconRemoved(int count) {
     X11Listener listener = X11ListenerBin.get();
+    if (listener == null) return;
     listener.trayIconRemoved(count);
   }
 
   public static void X11Listener_windowsChanged() {
     X11Listener listener = X11ListenerBin.get();
+    if (listener == null) return;
     listener.windowsChanged();
   }
 
   public static void X11Listener_windowAdded(long xid, int pid, MemorySegment title, MemorySegment name, MemorySegment res_name, MemorySegment res_class) {
     X11Listener listener = X11ListenerBin.get();
+    if (listener == null) return;
     listener.windowAdded(xid, pid, title.reinterpret(1024).getString(0), name.reinterpret(1024).getString(0), res_name.reinterpret(1024).getString(0), res_class.reinterpret(1024).getString(0));
   }
 
   public static void X11Listener_windowDeleted(long xid) {
     X11Listener listener = X11ListenerBin.get();
+    if (listener == null) return;
     listener.windowDeleted(xid);
   }
 
