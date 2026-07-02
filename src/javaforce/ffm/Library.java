@@ -44,7 +44,8 @@ public class Library {
   }
 
   /** Find native libraries in folder (recursive). */
-  public static boolean findLibraries(File[] folders, Library[] libs, String ext) {
+  public static boolean findLibraries(File[] folders, Library[] libs) {
+    String ext = getExt();
     for(int i=0;i<libs.length;i++) {
       if (JF.isUnix()) {
         libs[i].name = "lib" + libs[i].name;

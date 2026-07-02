@@ -35,24 +35,19 @@ public class CL {
 
   private boolean init() {
     File[] sysFolders;
-    String ext = "";
     String apphome = System.getProperty("java.app.home");
     String name = "OpenCL";
     if (apphome == null) apphome = ".";
     if (JF.isWindows()) {
       sysFolders = new File[] {new File(System.getenv("windir") + "\\system32"), new File(apphome), new File(".")};
-      ext = ".dll";
       name = name.toLowerCase();
     } else if (JF.isMac()) {
       sysFolders = new File[] {new File("/System/Library/Frameworks/OpenCL.framework/Versions/Current/Libraries"), new File(apphome), new File(".")};
-      ext = ".dylib";
     } else {
       sysFolders = new File[] {new File("/usr/lib"), new File(Library.getArchLibFolder())};
-      ext = ".so";
     }
     Library[] libs = {new Library(name)};
-    Library.findLibraries(sysFolders, libs, ext);
-    if (libs[0].path == null) {
+    if (!Library.findLibraries(sysFolders, libs)) {
       JFLog.log("Error:Unable to find OpenCL library");
       return false;
     }

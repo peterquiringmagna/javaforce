@@ -37,7 +37,7 @@ public class Linux implements X11Listener {
   private static void load() {
     if (!JF.isUnix()) return;
     Library[] libs = {new Library("X11"), new Library("GL"), new Library("v4l2"), new Library("pam"), new Library("ncurses")};
-    Library.findLibraries(new File[] {new File("/usr/lib"), new File(Library.getArchLibFolder())}, libs, ".so");
+    Library.findLibraries(new File[] {new File("/usr/lib"), new File(Library.getArchLibFolder())}, libs);
     instance.lnxInit(libs[0].path, libs[1].path, libs[2].path, libs[3].path, libs[4].path);
   }
 

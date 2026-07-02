@@ -33,17 +33,8 @@ public class MediaCoder {
     return ctx != 0;
   }
 
-  private static boolean haveLibs(Library[] libs) {
-    int cnt = 0;
-    for(int a=0;a<libs.length;a++) {
-      if (libs[a].path != null) cnt++;
-    }
-    return cnt == libs.length;
-  }
-
   private static boolean mediaInit() {
     File[] sysFolders = Library.getSysFolders();
-    String ext = Library.getExt();
     Library[] libs = {
       new Library("avcodec")
       , new Library("avdevice")
@@ -53,11 +44,10 @@ public class MediaCoder {
       , new Library("swscale")
       , new Library("swresample")
     };
-    Library.findLibraries(sysFolders, libs, ext);
-    if (!haveLibs(libs)) {
+    if (!Library.findLibraries(sysFolders, libs)) {
       for(int a=0;a<libs.length;a++) {
         if (libs[a].path == null) {
-          System.out.println("Error:Unable to find library:" + libs[a].name + ext);
+          System.out.println("Error:Unable to find library:" + libs[a].name);
         }
       }
       JFLog.log("MediaCoder.load() failed");
