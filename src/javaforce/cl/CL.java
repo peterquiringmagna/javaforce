@@ -51,7 +51,7 @@ public class CL {
       JFLog.log("Error:Unable to find OpenCL library");
       return false;
     }
-    return api.clLoadLibrary(libs[0].path);
+    return api.clLoadLibrary(libs[0].getPath());
   }
 
   /** Create OpenGL Context with source code.

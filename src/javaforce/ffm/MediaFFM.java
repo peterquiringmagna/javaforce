@@ -31,9 +31,6 @@ public class MediaFFM implements MediaAPI {
     return instance;
   }
 
-  private MethodHandle mediaLoadLibs;
-  public boolean mediaLoadLibs(String codec,String device,String filter,String format,String util,String swscale,String swresample) { try { Arena arena = Arena.ofAuto(); boolean _ret_value_ = (boolean)mediaLoadLibs.invokeExact(arena.allocateFrom(codec),arena.allocateFrom(device),arena.allocateFrom(filter),arena.allocateFrom(format),arena.allocateFrom(util),arena.allocateFrom(swscale),arena.allocateFrom(swresample));return _ret_value_; } catch (Throwable t) { JFLog.log(t);  return false;} }
-
   private MethodHandle mediaSetLogging;
   public void mediaSetLogging(boolean state) { try { mediaSetLogging.invokeExact(state); } catch (Throwable t) { JFLog.log(t); } }
 
@@ -191,11 +188,13 @@ public class MediaFFM implements MediaAPI {
   private boolean ffm_init() {
     MethodHandle init;
     ffm = FFM.getInstance();
-    init = ffm.getFunction("MediaAPIinit", ffm.getFunctionDesciptor(ValueLayout.JAVA_BOOLEAN));
+    Library[] libs = new Library[] {new Library("avcodec"),new Library("avdevice"),new Library("avfilter"),new Library("avformat"),new Library("avutil"),new Library("swscale"),new Library("swresample")};
+    Library.findLibraries(null, libs);
+    Arena arena = Arena.ofAuto();
+    init = ffm.getFunction("MediaAPIinit", ffm.getFunctionDesciptor(ValueLayout.JAVA_BOOLEAN,ADDRESS,ADDRESS,ADDRESS,ADDRESS,ADDRESS,ADDRESS,ADDRESS));
     if (init == null) return false;
-    try {if (!(boolean)init.invokeExact()) return false;} catch (Throwable t) {JFLog.log(t); return false;}
+    try {if (!(boolean)init.invokeExact(libs[0].getPath(arena),libs[1].getPath(arena),libs[2].getPath(arena),libs[3].getPath(arena),libs[4].getPath(arena),libs[5].getPath(arena),libs[6].getPath(arena))) return false;} catch (Throwable t) {JFLog.log(t); return false;}
 
-    mediaLoadLibs = ffm.getFunctionPtr("_mediaLoadLibs", ffm.getFunctionDesciptor(JAVA_BOOLEAN,ADDRESS,ADDRESS,ADDRESS,ADDRESS,ADDRESS,ADDRESS,ADDRESS));
     mediaSetLogging = ffm.getFunctionPtr("_mediaSetLogging", ffm.getFunctionDesciptorVoid(JAVA_BOOLEAN));
     getVideoStream = ffm.getFunctionPtr("_getVideoStream", ffm.getFunctionDesciptor(JAVA_INT,JAVA_LONG));
     getAudioStream = ffm.getFunctionPtr("_getAudioStream", ffm.getFunctionDesciptor(JAVA_INT,JAVA_LONG));

@@ -17,6 +17,7 @@ import javaforce.ffm.*;
  *   - Supports Windows, Linux and MacOS
  */
 
+@NativeLibrary("GL")
 public interface GL {
 
   /** Returns OpenGL functions.

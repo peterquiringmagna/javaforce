@@ -30,9 +30,6 @@ public class LinuxFFM implements LinuxAPI {
     return instance;
   }
 
-  private MethodHandle lnxInit;
-  public boolean lnxInit(String libX11,String libGL,String libv4l2,String pam,String ncurses) { try { Arena arena = Arena.ofAuto(); boolean _ret_value_ = (boolean)lnxInit.invokeExact(arena.allocateFrom(libX11),arena.allocateFrom(libGL),arena.allocateFrom(libv4l2),arena.allocateFrom(pam),arena.allocateFrom(ncurses));return _ret_value_; } catch (Throwable t) { JFLog.log(t);  return false;} }
-
   private MethodHandle ptyAlloc;
   public long ptyAlloc() { try { long _ret_value_ = (long)ptyAlloc.invokeExact();return _ret_value_; } catch (Throwable t) { JFLog.log(t);  return -1;} }
 
@@ -109,11 +106,13 @@ public class LinuxFFM implements LinuxAPI {
   private boolean ffm_init() {
     MethodHandle init;
     ffm = FFM.getInstance();
-    init = ffm.getFunction("LinuxAPIinit", ffm.getFunctionDesciptor(ValueLayout.JAVA_BOOLEAN));
+    Library[] libs = new Library[] {new Library("pam"),new Library("ncurses")};
+    Library.findLibraries(null, libs);
+    Arena arena = Arena.ofAuto();
+    init = ffm.getFunction("LinuxAPIinit", ffm.getFunctionDesciptor(ValueLayout.JAVA_BOOLEAN,ADDRESS,ADDRESS));
     if (init == null) return false;
-    try {if (!(boolean)init.invokeExact()) return false;} catch (Throwable t) {JFLog.log(t); return false;}
+    try {if (!(boolean)init.invokeExact(libs[0].getPath(arena),libs[1].getPath(arena))) return false;} catch (Throwable t) {JFLog.log(t); return false;}
 
-    lnxInit = ffm.getFunctionPtr("_lnxInit", ffm.getFunctionDesciptor(JAVA_BOOLEAN,ADDRESS,ADDRESS,ADDRESS,ADDRESS,ADDRESS));
     ptyAlloc = ffm.getFunctionPtr("_ptyAlloc", ffm.getFunctionDesciptor(JAVA_LONG));
     ptyFree = ffm.getFunctionPtr("_ptyFree", ffm.getFunctionDesciptorVoid(JAVA_LONG));
     ptyOpen = ffm.getFunctionPtr("_ptyOpen", ffm.getFunctionDesciptor(ADDRESS,JAVA_LONG));

@@ -125,218 +125,11 @@ void sleep_ms(int milliseconds) {
   }
 }
 
-jboolean lnxInit(const char* libX11_so, const char* libgl_so, const char* libv4l2_so, const char* libpam_so, const char* libncurses_so)
-{
-  if (jawt == NULL) {
-    jawt = loadLibrary("libjawt.so");
-    if (jawt == NULL) {
-      printf("Warning:dlopen(libjawt.so) unsuccessful\n");
-      return JNI_FALSE;
-    }
-    getFunction(jawt, (void**)&_JAWT_GetAWT, "JAWT_GetAWT");
-  }
-  isWayland = getenv("WAYLAND_DISPLAY") != NULL;
-  if (x11 == NULL && libX11_so != NULL) {
-    x11 = dlopen(libX11_so, RTLD_LAZY | RTLD_GLOBAL);
-    if (x11 == NULL) {
-      printf("Warning:dlopen(libX11.so) unsuccessful\n");
-    } else {
-      getFunction(x11, (void**)&_XOpenDisplay, "XOpenDisplay");
-      getFunction(x11, (void**)&_XCloseDisplay, "XCloseDisplay");
-      getFunction(x11, (void**)&_XInternAtom, "XInternAtom");
-      getFunction(x11, (void**)&_XChangeProperty, "XChangeProperty");
-      getFunction(x11, (void**)&_XSendEvent, "XSendEvent");
-      getFunction(x11, (void**)&_XSetSelectionOwner, "XSetSelectionOwner");
-      getFunction(x11, (void**)&_XSelectInput, "XSelectInput");
-      getFunction(x11, (void**)&_XMapWindow, "XMapWindow");
-      getFunction(x11, (void**)&_XUnmapWindow, "XUnmapWindow");
-      getFunction(x11, (void**)&_XNextEvent, "XNextEvent");
-      getFunction(x11, (void**)&_XIconifyWindow, "XIconifyWindow");
-      getFunction(x11, (void**)&_XRaiseWindow, "XRaiseWindow");
-      getFunction(x11, (void**)&_XKeysymToKeycode, "XKeysymToKeycode");
-      getFunction(x11, (void**)&_XGetInputFocus, "XGetInputFocus");
-      getFunction(x11, (void**)&_XDefaultRootWindow, "XDefaultRootWindow");
-      getFunction(x11, (void**)&_XMoveResizeWindow, "XMoveResizeWindow");
-      getFunction(x11, (void**)&_XReparentWindow, "XReparentWindow");
-      getFunction(x11, (void**)&_XCreateSimpleWindow, "XCreateSimpleWindow");
-      getFunction(x11, (void**)&_XGetWindowProperty, "XGetWindowProperty");
-      getFunction(x11, (void**)&_XFree, "XFree");
-      getFunction(x11, (void**)&_XGetClassHint, "XGetClassHint");
-      getFunction(x11, (void**)&_XFetchName, "XFetchName");
-    }
-  }
-  if (xgl == NULL && libgl_so != NULL) {
-    xgl = dlopen(libgl_so, RTLD_LAZY | RTLD_GLOBAL);
-    if (xgl == NULL) {
-      printf("Warning:dlopen(libGL.so) unsuccessful\n");
-    } else {
-      getFunction(xgl, (void**)&_glXCreateContext, "glXCreateContext");
-      getFunction(xgl, (void**)&_glXDestroyContext, "glXDestroyContext");
-      getFunction(xgl, (void**)&_glXMakeCurrent, "glXMakeCurrent");
-      getFunction(xgl, (void**)&_glXGetProcAddress, "glXGetProcAddress");
-      getFunction(xgl, (void**)&_glXSwapBuffers, "glXSwapBuffers");
-      getFunction(xgl, (void**)&_glXChooseVisual, "glXChooseVisual");
-    }
-  }
-  if (v4l2 == NULL && libv4l2_so != NULL) {
-    v4l2 = dlopen(libv4l2_so, RTLD_LAZY | RTLD_GLOBAL);
-    if (v4l2 == NULL) {
-      printf("Warning:dlopen(libv4l2.so) unsuccessful\n");
-    } else {
-      getFunction(v4l2, (void**)&_v4l2_open, "v4l2_open");
-      getFunction(v4l2, (void**)&_v4l2_close, "v4l2_close");
-      getFunction(v4l2, (void**)&_v4l2_dup, "v4l2_dup");
-      getFunction(v4l2, (void**)&_v4l2_ioctl, "v4l2_ioctl");
-      getFunction(v4l2, (void**)&_v4l2_read, "v4l2_read");
-      getFunction(v4l2, (void**)&_v4l2_mmap, "v4l2_mmap");
-      getFunction(v4l2, (void**)&_v4l2_munmap, "v4l2_munmap");
-    }
-  }
-  if (pam == NULL && libpam_so != NULL) {
-    pam = dlopen(libpam_so, RTLD_LAZY | RTLD_GLOBAL);
-    if (pam == NULL) {
-      printf("Warning:dlopen(libpam.so) unsuccessful\n");
-    } else {
-      getFunction(pam, (void**)&_pam_start, "pam_start");
-      getFunction(pam, (void**)&_pam_authenticate, "pam_authenticate");
-      getFunction(pam, (void**)&_pam_end, "pam_end");
-    }
-  }
-  if (ncurses == NULL && libncurses_so != NULL) {
-    ncurses = dlopen(libncurses_so, RTLD_LAZY | RTLD_GLOBAL);
-    if (ncurses == NULL) {
-      printf("Warning:dlopen(libncurses.so) unsuccessful\n");
-    } else {
-      getFunction(ncurses, (void**)&_initscr, "initscr");
-      getFunction(ncurses, (void**)&_raw, "raw");
-      getFunction(ncurses, (void**)&_noecho, "noecho");
-      getFunction(ncurses, (void**)&_wtimeout, "wtimeout");
-      getFunction(ncurses, (void**)&_wgetch, "wgetch");
-      getFunction(ncurses, (void**)&_ungetch, "ungetch");
-      getFunction(ncurses, (void**)&_endwin, "endwin");
-      getFunction(ncurses, (void**)&_stdscr, "stdscr");
-    }
-  }
-  return JNI_TRUE;
-}
-
-static jlong getX11ID(JNIEnv *e, jobject c) {
-  JAWT_DrawingSurface* ds;
-  JAWT_DrawingSurfaceInfo* dsi;
-  jint lock;
-  JAWT awt;
-
-  if (jawt == NULL) return 0;
-  if (_JAWT_GetAWT == NULL) return 0;
-
-  awt.version = JAWT_VERSION_1_4;
-  if (!(*_JAWT_GetAWT)(e, &awt)) {
-    printf("JAWT_GetAWT() failed\n");
-    return 0;
-  }
-
-  ds = awt.GetDrawingSurface(e, c);
-  if (ds == NULL) {
-    printf("JAWT.GetDrawingSurface() failed\n");
-    return 0;
-  }
-  lock = ds->Lock(ds);
-  if ((lock & JAWT_LOCK_ERROR) != 0) {
-    awt.FreeDrawingSurface(ds);
-    printf("JAWT.Lock() failed\n");
-    return 0;
-  }
-  dsi = ds->GetDrawingSurfaceInfo(ds);
-  if (dsi == NULL) {
-    printf("JAWT.GetDrawingSurfaceInfo() failed\n");
-    return 0;
-  }
-  JAWT_X11DrawingSurfaceInfo* xdsi = (JAWT_X11DrawingSurfaceInfo*)dsi->platformInfo;
-  if (xdsi == NULL) {
-    printf("JAWT.platformInfo == NULL\n");
-    return 0;
-  }
-  jlong handle = xdsi->drawable;
-  ds->FreeDrawingSurfaceInfo(dsi);
-  ds->Unlock(ds);
-  awt.FreeDrawingSurface(ds);
-
-  return handle;
-}
-
-struct WLToolkit {
-  void* wl_surface;
-  void* wl_view;
-};
-
-static jlong getWaylandID(JNIEnv *e, jobject c) {
-  JAWT_DrawingSurface* ds;
-  JAWT_DrawingSurfaceInfo* dsi;
-  jint lock;
-  JAWT awt;
-
-  if (jawt == NULL) return 0;
-  if (_JAWT_GetAWT == NULL) return 0;
-
-  awt.version = JAWT_VERSION_1_4;
-  if (!(*_JAWT_GetAWT)(e, &awt)) {
-    printf("JAWT_GetAWT() failed\n");
-    return 0;
-  }
-
-  ds = awt.GetDrawingSurface(e, c);
-  if (ds == NULL) {
-    printf("JAWT.GetDrawingSurface() failed\n");
-    return 0;
-  }
-  lock = ds->Lock(ds);
-  if ((lock & JAWT_LOCK_ERROR) != 0) {
-    awt.FreeDrawingSurface(ds);
-    printf("JAWT.Lock() failed\n");
-    return 0;
-  }
-  dsi = ds->GetDrawingSurfaceInfo(ds);
-  if (dsi == NULL) {
-    printf("JAWT.GetDrawingSurfaceInfo() failed\n");
-    return 0;
-  }
-  WLToolkit* xdsi = (WLToolkit*)dsi->platformInfo;
-  printf("xdsi=%p\n", xdsi);
-  if (xdsi == NULL) {
-    printf("JAWT.platformInfo == NULL\n");
-    return 0;
-  }
-  jlong handle = (jlong)xdsi->wl_surface;
-  ds->FreeDrawingSurfaceInfo(dsi);
-  ds->Unlock(ds);
-  awt.FreeDrawingSurface(ds);
-
-  return handle;
-}
-
 #include "../common/ui.cpp"
 
 #include "../common/gl.cpp"
 
-jboolean glPlatformInit() {
-  return JNI_TRUE;
-}
-
-jboolean glGetFunction(void **funcPtr, const char *name)
-{
-  void *func;
-  func = (void*)(*_glXGetProcAddress)(name);  //get OpenGL 1.x function
-  if (func == NULL) {
-    func = (void*)dlsym(xgl, name);  //get OpenGL 2.0+ function
-  }
-  if (func != NULL) {
-    *funcPtr = func;
-    return JNI_TRUE;
-  } else {
-    printf("OpenGL:Error:Can not find function:%s\n", name);
-    return JNI_FALSE;
-  }
-}
+#include "gl.cpp"
 
 void uiWindowSetIcon(GLFWContextFFM* ctx, const char* filename, jint x, jint y)
 {
@@ -417,9 +210,36 @@ JNIEXPORT void* _ignored() {
 }
 
 extern "C" {
-  JNIEXPORT jboolean (*_lnxInit)(const char*,const char*,const char*,const char*,const char*) = &lnxInit;
   JNIEXPORT void (*_setEnv)(const char*,const char*) = &setEnv;
   JNIEXPORT jint (*_getUID)() = & getUID;
 
-  JNIEXPORT jboolean JNICALL LinuxAPIinit() {return JNI_TRUE;}
+  JNIEXPORT jboolean JNICALL LinuxAPIinit(const char* libpam_so, const char* libncurses_so) {
+    isWayland = getenv("WAYLAND_DISPLAY") != NULL;
+    if (pam == NULL && libpam_so != NULL) {
+      pam = dlopen(libpam_so, RTLD_LAZY | RTLD_GLOBAL);
+      if (pam == NULL) {
+        printf("Warning:dlopen(libpam.so) unsuccessful\n");
+      } else {
+        getFunction(pam, (void**)&_pam_start, "pam_start");
+        getFunction(pam, (void**)&_pam_authenticate, "pam_authenticate");
+        getFunction(pam, (void**)&_pam_end, "pam_end");
+      }
+    }
+    if (ncurses == NULL && libncurses_so != NULL) {
+      ncurses = dlopen(libncurses_so, RTLD_LAZY | RTLD_GLOBAL);
+      if (ncurses == NULL) {
+        printf("Warning:dlopen(libncurses.so) unsuccessful\n");
+      } else {
+        getFunction(ncurses, (void**)&_initscr, "initscr");
+        getFunction(ncurses, (void**)&_raw, "raw");
+        getFunction(ncurses, (void**)&_noecho, "noecho");
+        getFunction(ncurses, (void**)&_wtimeout, "wtimeout");
+        getFunction(ncurses, (void**)&_wgetch, "wgetch");
+        getFunction(ncurses, (void**)&_ungetch, "ungetch");
+        getFunction(ncurses, (void**)&_endwin, "endwin");
+        getFunction(ncurses, (void**)&_stdscr, "stdscr");
+      }
+    }
+    return JNI_TRUE;
+  }
 }

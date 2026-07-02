@@ -202,7 +202,8 @@ static int64_t currentTimeMillis() {
   return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
 
-jboolean mediaLoadLibs(const char* codecFile, const char* deviceFile, const char* filterFile, const char* formatFile
+extern "C" {
+JNIEXPORT jboolean JNICALL MediaAPIinit(const char* codecFile, const char* deviceFile, const char* filterFile, const char* formatFile
   , const char* utilFile, const char* scaleFile, const char* resampleFile)
 {
   //load libraries (order is important)
@@ -388,6 +389,7 @@ jboolean mediaLoadLibs(const char* codecFile, const char* deviceFile, const char
 
   return JNI_TRUE;
 }
+}
 
 void mediaSetLogging(jboolean state)
 {
@@ -534,11 +536,7 @@ static jlong seek_packet(FFContext* ctx, jlong offset, int how) {
 //FFM API
 
 extern "C" {
-  JNIEXPORT jboolean MediaAPIinit() {
-    return JNI_TRUE;
-  }
   //MediaCoder
-  JNIEXPORT jboolean (*_mediaLoadLibs)(const char* codec, const char* device, const char* filter, const char* format, const char* util, const char* scale, const char* resample) = &mediaLoadLibs;
   JNIEXPORT void (*_mediaSetLogging)(jboolean state) = &mediaSetLogging;
   //MediaFormat
   JNIEXPORT jint (*_getVideoStream)(FFContext* ctx) = &getVideoStream;

@@ -7,7 +7,7 @@ jboolean glGetFunction(void **funcPtr, const char *name);  //platform impl
 extern "C" {
 #endif
 
-JNIEXPORT jboolean JNICALL GLinit();
+JNIEXPORT jboolean JNICALL GLinit(const char* libgl_so);
 
 JNIEXPORT void (*_glActiveTexture)(int);
 JNIEXPORT void (*_glAlphaFunc)(int,int);
@@ -80,9 +80,8 @@ JNIEXPORT void (*_glViewport)(int, int, int, int);
 }
 #endif
 
-JNIEXPORT jboolean JNICALL GLinit()
+jboolean GL_get_functions()
 {
-  if (!glPlatformInit()) return JNI_FALSE;
   glGetFunction((void**)&_glActiveTexture,"glActiveTexture");
   glGetFunction((void**)&_glAlphaFunc,"glAlphaFunc");
   glGetFunction((void**)&_glAttachShader,"glAttachShader");

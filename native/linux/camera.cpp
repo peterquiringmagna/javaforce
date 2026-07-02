@@ -389,7 +389,23 @@ extern "C" {
   JNIEXPORT jint (*_cameraGetWidth)(jlong) = &cameraGetWidth;
   JNIEXPORT jint (*_cameraGetHeight)(jlong) = &cameraGetHeight;
 
-  JNIEXPORT jboolean JNICALL CameraAPIinit() {return JNI_TRUE;}
+  JNIEXPORT jboolean JNICALL CameraAPIinit(const char* libv4l2_so) {
+    if (v4l2 == NULL && libv4l2_so != NULL) {
+      v4l2 = dlopen(libv4l2_so, RTLD_LAZY | RTLD_GLOBAL);
+      if (v4l2 == NULL) {
+        printf("Warning:dlopen(libv4l2.so) unsuccessful\n");
+      } else {
+        getFunction(v4l2, (void**)&_v4l2_open, "v4l2_open");
+        getFunction(v4l2, (void**)&_v4l2_close, "v4l2_close");
+        getFunction(v4l2, (void**)&_v4l2_dup, "v4l2_dup");
+        getFunction(v4l2, (void**)&_v4l2_ioctl, "v4l2_ioctl");
+        getFunction(v4l2, (void**)&_v4l2_read, "v4l2_read");
+        getFunction(v4l2, (void**)&_v4l2_mmap, "v4l2_mmap");
+        getFunction(v4l2, (void**)&_v4l2_munmap, "v4l2_munmap");
+      }
+    }
+    return JNI_TRUE;
+  }
 }
 
 #endif  //__FreeBSD__

@@ -61,9 +61,12 @@ public class CameraFFM implements CameraAPI {
   private boolean ffm_init() {
     MethodHandle init;
     ffm = FFM.getInstance();
-    init = ffm.getFunction("CameraAPIinit", ffm.getFunctionDesciptor(ValueLayout.JAVA_BOOLEAN));
+    Library[] libs = new Library[] {new Library("v4l2")};
+    Library.findLibraries(null, libs);
+    Arena arena = Arena.ofAuto();
+    init = ffm.getFunction("CameraAPIinit", ffm.getFunctionDesciptor(ValueLayout.JAVA_BOOLEAN,ADDRESS));
     if (init == null) return false;
-    try {if (!(boolean)init.invokeExact()) return false;} catch (Throwable t) {JFLog.log(t); return false;}
+    try {if (!(boolean)init.invokeExact(libs[0].getPath(arena))) return false;} catch (Throwable t) {JFLog.log(t); return false;}
 
     cameraInit = ffm.getFunctionPtr("_cameraInit", ffm.getFunctionDesciptor(JAVA_LONG));
     cameraUninit = ffm.getFunctionPtr("_cameraUninit", ffm.getFunctionDesciptor(JAVA_BOOLEAN,JAVA_LONG));

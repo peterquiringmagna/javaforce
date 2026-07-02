@@ -2,6 +2,7 @@ package javaforce.ffm;
 
 import java.io.*;
 import java.util.*;
+import java.lang.foreign.*;
 
 import javaforce.*;
 
@@ -11,12 +12,21 @@ import javaforce.*;
  */
 
 public class Library {
-  public String name;
-  public String path;
-  public String match;
+  private String name;
+  private String path;
+  private String match;
 
   public Library(String name) {
     this.name = name;
+  }
+
+  public String getPath() {
+    return path;
+  }
+
+  public MemorySegment getPath(Arena arena) {
+    if (path == null) return MemorySegment.NULL;
+    return arena.allocateFrom(path);
   }
 
   /** Get shared library extension. */
@@ -51,6 +61,9 @@ public class Library {
         libs[i].name = "lib" + libs[i].name;
       }
       libs[i].match = libs[i].name + "([-][0-9]*)?" + ext + "([.][0-9]*)*";
+    }
+    if (folders == null) {
+      folders = getSysFolders();
     }
     for(int fn=0;fn<folders.length;fn++) {
       File[] files = folders[fn].listFiles();
@@ -90,6 +103,7 @@ public class Library {
     boolean ok = true;
     for(int i=0;i<libs.length;i++) {
       if (libs[i].path == null) {
+        if (libs[i].name.equals("GL") && JF.isWindows()) continue;  //known issue
         JFLog.log("Unable to find library:" + libs[i].name);
         ok = false;
       }

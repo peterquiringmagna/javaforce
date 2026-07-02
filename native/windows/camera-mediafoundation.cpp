@@ -423,5 +423,5 @@ extern "C" {
   JNIEXPORT jint (*_cameraGetWidth)(jlong) = &cameraGetWidth;
   JNIEXPORT jint (*_cameraGetHeight)(jlong) = &cameraGetHeight;
 
-  JNIEXPORT jboolean JNICALL CameraAPIinit() {return JNI_TRUE;}
+  JNIEXPORT jboolean JNICALL CameraAPIinit(const char*lib) {return JNI_TRUE;}
 }

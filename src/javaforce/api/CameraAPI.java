@@ -7,6 +7,7 @@ import javaforce.ffm.*;
  * @author pquiring
  */
 
+@NativeLibrary("v4l2")
 public interface CameraAPI {
   public static CameraAPI getInstance() {
     return CameraFFM.getInstance();

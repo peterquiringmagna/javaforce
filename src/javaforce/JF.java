@@ -277,10 +277,15 @@ public class JF {
     return osName.startsWith("Mac") || osName.startsWith("Darwin");
   }
 
+  /** Checks if system is Linux. */
+  public static boolean isLinux() {
+    return isUnix() && !isMac();
+  }
+
   /** Checks if system is jfLinux only. */
   public static boolean isJFLinux() {
-    if (!isUnix()) return false;
-    return new File("/usr/sbin/jlogon").exists();
+    if (!isLinux()) return false;
+    return new File("/usr/bin/jfsystem").exists();
   }
 
   /** Returns user home folder. */

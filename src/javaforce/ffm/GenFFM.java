@@ -24,6 +24,8 @@ public class GenFFM {
     String i_e = args[3];
     String basecls = args[4];
 
+    String[] libs = null;
+
     System.out.println("Converting " + fin + " to " + fout);
 
     String cls_in = fin;
@@ -100,14 +102,52 @@ public class GenFFM {
       src.append("    return instance;\n");
       src.append("  }\n");
       src.append("\n");
+      for(String ln : lns) {
+        ln = ln.trim();
+        if (ln.startsWith("@NativeLibrary")) {
+          int i1 = ln.indexOf("\"");
+          int i2 = ln.lastIndexOf("\"");
+          libs = ln.substring(i1 + 1, i2).split(",");
+          break;
+        }
+        if (ln.startsWith("public")) {
+          break;
+        }
+      }
       ctor.append("  private boolean ffm_init() {\n");
 //      ctor.append("    JFLog.log(\"" + cls_out + " init\");\n");
       ctor.append("    MethodHandle init;\n");
       ctor.append("    ffm = FFM.getInstance();\n");
-//      ctor.append("    arena = Arena.ofAuto();\n");
-      ctor.append("    init = ffm.getFunction(\"" + basecls + "init\", ffm.getFunctionDesciptor(ValueLayout.JAVA_BOOLEAN));\n");
+      if (libs != null) {
+        ctor.append("    Library[] libs = new Library[] {");
+        for(int l=0;l<libs.length;l++) {
+          if (l > 0) ctor.append(",");
+          ctor.append("new Library(\"");
+          ctor.append(libs[l]);
+          ctor.append("\")");
+        }
+        ctor.append("};\n");
+        ctor.append("    Library.findLibraries(null, libs);\n");
+        ctor.append("    Arena arena = Arena.ofAuto();\n");
+      }
+      ctor.append("    init = ffm.getFunction(\"" + basecls + "init\", ffm.getFunctionDesciptor(ValueLayout.JAVA_BOOLEAN");
+      if (libs != null) {
+        for(int l=0;l<libs.length;l++) {
+          ctor.append(",ADDRESS");
+        }
+      }
+      ctor.append("));\n");
       ctor.append("    if (init == null) return false;\n");
-      ctor.append("    try {if (!(boolean)init.invokeExact()) return false;} catch (Throwable t) {JFLog.log(t); return false;}\n");
+      ctor.append("    try {if (!(boolean)init.invokeExact(");
+      if (libs != null) {
+        for(int l=0;l<libs.length;l++) {
+          if (l > 0) {
+            ctor.append(",");
+          }
+          ctor.append("libs[" + l + "].getPath(arena)");
+        }
+      }
+      ctor.append(")) return false;} catch (Throwable t) {JFLog.log(t); return false;}\n");
       ctor.append("\n");
       for(String ln : lns) {
         lnidx++;

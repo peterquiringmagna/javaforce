@@ -8,6 +8,7 @@ import javaforce.ffm.*;
  * @author pquiring
  */
 
+@NativeLibrary("avcodec,avdevice,avfilter,avformat,avutil,swscale,swresample")
 public interface MediaAPI {
 
   public static MediaAPI getInstance() {
@@ -15,7 +16,6 @@ public interface MediaAPI {
   }
 
   //MediaCoder
-  public boolean mediaLoadLibs(String codec, String device, String filter, String format, String util, String swscale, String swresample);
   public void mediaSetLogging(boolean state);
 
   //MediaFormat

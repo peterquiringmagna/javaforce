@@ -90,9 +90,12 @@ public class X11FFM implements X11API {
   private boolean ffm_init() {
     MethodHandle init;
     ffm = FFM.getInstance();
-    init = ffm.getFunction("X11APIinit", ffm.getFunctionDesciptor(ValueLayout.JAVA_BOOLEAN));
+    Library[] libs = new Library[] {new Library("X11")};
+    Library.findLibraries(null, libs);
+    Arena arena = Arena.ofAuto();
+    init = ffm.getFunction("X11APIinit", ffm.getFunctionDesciptor(ValueLayout.JAVA_BOOLEAN,ADDRESS));
     if (init == null) return false;
-    try {if (!(boolean)init.invokeExact()) return false;} catch (Throwable t) {JFLog.log(t); return false;}
+    try {if (!(boolean)init.invokeExact(libs[0].getPath(arena))) return false;} catch (Throwable t) {JFLog.log(t); return false;}
 
     x11_get_id = ffm.getFunctionPtr("_x11_get_id", ffm.getFunctionDesciptor(JAVA_LONG,JAVA_LONG));
     x11_set_desktop = ffm.getFunctionPtr("_x11_set_desktop", ffm.getFunctionDesciptorVoid(JAVA_LONG));

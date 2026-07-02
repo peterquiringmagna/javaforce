@@ -49,33 +49,7 @@ extern "C" {
 
 #include "../common/gl.cpp"
 
-jboolean glPlatformInit()
-{
-  if (wgl == NULL) {
-    wgl = LoadLibrary("opengl32.dll");
-    if (wgl == NULL) {
-      printf("LoadLibrary(opengl32.dll) failed\n");
-      return JNI_FALSE;
-    }
-  }
-  return JNI_TRUE;
-}
-
-jboolean glGetFunction(void **funcPtr, const char *name)
-{
-  void *func;
-  func = (void*)wglGetProcAddress(name);  //get OpenGL 1.x function
-  if (func == NULL) {
-    func = (void*)GetProcAddress(wgl, name);  //get OpenGL 2.0+ function
-  }
-  if (func != NULL) {
-    *funcPtr = func;
-    return JNI_TRUE;
-  } else {
-    printf("OpenGL:Error:Can not find function:%s\n", name);
-    return JNI_FALSE;
-  }
-}
+#include "gl.cpp"
 
 //Camera API (only enable one)
 

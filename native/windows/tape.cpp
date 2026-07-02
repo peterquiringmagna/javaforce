@@ -462,6 +462,4 @@ extern "C" {
   JNIEXPORT void (*_changerClose)(jlong) = &changerClose;
   JNIEXPORT jstringArray (*_changerList)(jlong) = &changerList;
   JNIEXPORT jboolean (*_changerMove)(jlong,const char*,const char*,const char*) = &changerMove;
-
-  JNIEXPORT jboolean JNICALL WindowsAPIinit() {return JNI_TRUE;}
 }

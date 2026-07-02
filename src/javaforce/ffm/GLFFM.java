@@ -238,9 +238,12 @@ public class GLFFM implements GL {
   private boolean ffm_init() {
     MethodHandle init;
     ffm = FFM.getInstance();
-    init = ffm.getFunction("GLinit", ffm.getFunctionDesciptor(ValueLayout.JAVA_BOOLEAN));
+    Library[] libs = new Library[] {new Library("GL")};
+    Library.findLibraries(null, libs);
+    Arena arena = Arena.ofAuto();
+    init = ffm.getFunction("GLinit", ffm.getFunctionDesciptor(ValueLayout.JAVA_BOOLEAN,ADDRESS));
     if (init == null) return false;
-    try {if (!(boolean)init.invokeExact()) return false;} catch (Throwable t) {JFLog.log(t); return false;}
+    try {if (!(boolean)init.invokeExact(libs[0].getPath(arena))) return false;} catch (Throwable t) {JFLog.log(t); return false;}
 
     glActiveTexture = ffm.getFunctionPtr("_glActiveTexture", ffm.getFunctionDesciptorVoid(JAVA_INT));
     glAlphaFunc = ffm.getFunctionPtr("_glAlphaFunc", ffm.getFunctionDesciptorVoid(JAVA_INT,JAVA_INT));

@@ -1,3 +1,47 @@
+static jlong getX11ID(JNIEnv *e, jobject c) {
+  JAWT_DrawingSurface* ds;
+  JAWT_DrawingSurfaceInfo* dsi;
+  jint lock;
+  JAWT awt;
+
+  if (jawt == NULL) return 0;
+  if (_JAWT_GetAWT == NULL) return 0;
+
+  awt.version = JAWT_VERSION_1_4;
+  if (!(*_JAWT_GetAWT)(e, &awt)) {
+    printf("JAWT_GetAWT() failed\n");
+    return 0;
+  }
+
+  ds = awt.GetDrawingSurface(e, c);
+  if (ds == NULL) {
+    printf("JAWT.GetDrawingSurface() failed\n");
+    return 0;
+  }
+  lock = ds->Lock(ds);
+  if ((lock & JAWT_LOCK_ERROR) != 0) {
+    awt.FreeDrawingSurface(ds);
+    printf("JAWT.Lock() failed\n");
+    return 0;
+  }
+  dsi = ds->GetDrawingSurfaceInfo(ds);
+  if (dsi == NULL) {
+    printf("JAWT.GetDrawingSurfaceInfo() failed\n");
+    return 0;
+  }
+  JAWT_X11DrawingSurfaceInfo* xdsi = (JAWT_X11DrawingSurfaceInfo*)dsi->platformInfo;
+  if (xdsi == NULL) {
+    printf("JAWT.platformInfo == NULL\n");
+    return 0;
+  }
+  jlong handle = xdsi->drawable;
+  ds->FreeDrawingSurfaceInfo(dsi);
+  ds->Unlock(ds);
+  awt.FreeDrawingSurface(ds);
+
+  return handle;
+}
+
 struct X11Listener {
   void (*trayIconAdded)(jint);
   void (*trayIconRemoved)(jint);
@@ -616,5 +660,44 @@ extern "C" {
   JNIEXPORT jboolean (*_x11_send_event)(jint,jboolean) = &x11_send_event;
   JNIEXPORT jboolean (*_x11_send_event_id)(jlong,jint,jboolean) = &x11_send_event_id;
 
-  JNIEXPORT jboolean JNICALL X11APIinit() {return JNI_TRUE;}
+  JNIEXPORT jboolean JNICALL X11APIinit(const char* libX11_so) {
+    if (jawt == NULL) {
+      jawt = loadLibrary("libjawt.so");
+      if (jawt == NULL) {
+        printf("Warning:dlopen(libjawt.so) unsuccessful\n");
+        return JNI_FALSE;
+      }
+      getFunction(jawt, (void**)&_JAWT_GetAWT, "JAWT_GetAWT");
+    }
+    if (x11 == NULL && libX11_so != NULL) {
+      x11 = dlopen(libX11_so, RTLD_LAZY | RTLD_GLOBAL);
+      if (x11 == NULL) {
+        printf("Warning:dlopen(libX11.so) unsuccessful\n");
+      } else {
+        getFunction(x11, (void**)&_XOpenDisplay, "XOpenDisplay");
+        getFunction(x11, (void**)&_XCloseDisplay, "XCloseDisplay");
+        getFunction(x11, (void**)&_XInternAtom, "XInternAtom");
+        getFunction(x11, (void**)&_XChangeProperty, "XChangeProperty");
+        getFunction(x11, (void**)&_XSendEvent, "XSendEvent");
+        getFunction(x11, (void**)&_XSetSelectionOwner, "XSetSelectionOwner");
+        getFunction(x11, (void**)&_XSelectInput, "XSelectInput");
+        getFunction(x11, (void**)&_XMapWindow, "XMapWindow");
+        getFunction(x11, (void**)&_XUnmapWindow, "XUnmapWindow");
+        getFunction(x11, (void**)&_XNextEvent, "XNextEvent");
+        getFunction(x11, (void**)&_XIconifyWindow, "XIconifyWindow");
+        getFunction(x11, (void**)&_XRaiseWindow, "XRaiseWindow");
+        getFunction(x11, (void**)&_XKeysymToKeycode, "XKeysymToKeycode");
+        getFunction(x11, (void**)&_XGetInputFocus, "XGetInputFocus");
+        getFunction(x11, (void**)&_XDefaultRootWindow, "XDefaultRootWindow");
+        getFunction(x11, (void**)&_XMoveResizeWindow, "XMoveResizeWindow");
+        getFunction(x11, (void**)&_XReparentWindow, "XReparentWindow");
+        getFunction(x11, (void**)&_XCreateSimpleWindow, "XCreateSimpleWindow");
+        getFunction(x11, (void**)&_XGetWindowProperty, "XGetWindowProperty");
+        getFunction(x11, (void**)&_XFree, "XFree");
+        getFunction(x11, (void**)&_XGetClassHint, "XGetClassHint");
+        getFunction(x11, (void**)&_XFetchName, "XFetchName");
+      }
+    }
+    return JNI_TRUE;
+  }
 }

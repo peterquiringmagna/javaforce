@@ -162,4 +162,6 @@ extern "C" {
   JNIEXPORT jint (*_getSessionID)() = &getSessionID;
   JNIEXPORT jboolean (*_setSessionID)(jlong, int) = &setSessionID;
   JNIEXPORT void (*_closeSession)(jlong) = &closeSession;
+
+  JNIEXPORT jboolean JNICALL WindowsAPIinit() {return JNI_TRUE;}
 }

@@ -33,45 +33,9 @@ public class MediaCoder {
     return ctx != 0;
   }
 
-  private static boolean mediaInit() {
-    File[] sysFolders = Library.getSysFolders();
-    Library[] libs = {
-      new Library("avcodec")
-      , new Library("avdevice")
-      , new Library("avfilter")
-      , new Library("avformat")
-      , new Library("avutil")
-      , new Library("swscale")
-      , new Library("swresample")
-    };
-    if (!Library.findLibraries(sysFolders, libs)) {
-      for(int a=0;a<libs.length;a++) {
-        if (libs[a].path == null) {
-          System.out.println("Error:Unable to find library:" + libs[a].name);
-        }
-      }
-      JFLog.log("MediaCoder.load() failed");
-      System.exit(1);
-    }
-    if (!MediaAPI.getInstance().mediaLoadLibs(
-      libs[0].path,
-      libs[1].path,
-      libs[2].path,
-      libs[3].path,
-      libs[4].path,
-      libs[5].path,
-      libs[6].path
-    ))
-    {
-      System.exit(1);
-    }
-    return true;
-  }
-
-  /** Loads the media framework native libraries. */
-  public static void init() {
-    mediaInit();
-  }
+  /** Legacy method. */
+  @Deprecated
+  public static void init() {}
 
   /** Sets debug logging in media framework. */
   public static void setLogging(boolean state) {

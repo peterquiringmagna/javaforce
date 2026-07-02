@@ -60,7 +60,7 @@ public class PacketCapture {
       if (!Library.findLibraries(new File[] {new File("/usr/lib"), new File(Library.getArchLibFolder())}, new Library[] {so})) {
         return false;
       }
-      inited = PCapAPI.getInstance().pcapInit(null, so.path);
+      inited = PCapAPI.getInstance().pcapInit(null, so.getPath());
       return inited;
     }
     return inited;

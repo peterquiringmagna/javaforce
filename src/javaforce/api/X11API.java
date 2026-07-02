@@ -10,10 +10,10 @@ import javaforce.ffm.*;
  * @author pquiring
  */
 
+@NativeLibrary("X11")
 public interface X11API {
 
   public static X11API getInstance() {
-    Linux.getInstance();  //load linux libs
     return X11FFM.getInstance();
   }
 
