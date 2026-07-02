@@ -1623,6 +1623,29 @@ public class Linux implements X11Listener {
 
   /* Test */
   public static void main(String args[]) {
+    if (args.length == 0) {
+      JFLog.log("Usage : Linux cmd");
+    }
+    switch (args[0]) {
+      case "pam":
+        if (args.length == 3) {
+          test_pam(args[1], args[2]);
+        } else {
+          JFLog.log("Usage : Linux pam {user} {pass}");
+        }
+        break;
+      case "x11":
+        test_x11();
+        break;
+    }
+  }
+
+  private static void test_pam(String user, String pass) {
+    boolean res = authUser(user, pass);
+    JFLog.log("authUser=" + res);
+  }
+
+  private static void test_x11() {
     x11_set_listener(new X11Listener() {
       public void trayIconAdded(int count) {
         System.out.println("tragIconAdded:" + count);
