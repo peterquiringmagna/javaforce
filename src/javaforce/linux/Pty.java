@@ -1,5 +1,6 @@
 package javaforce.linux;
 
+import javaforce.api.linux.LinuxAPI;
 import java.io.*;
 import java.util.*;
 

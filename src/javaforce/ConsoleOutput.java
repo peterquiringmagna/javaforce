@@ -1,5 +1,6 @@
 package javaforce;
 
+import javaforce.api.linux.LinuxAPI;
 import javaforce.api.windows.WindowsAPI;
 import java.io.*;
 

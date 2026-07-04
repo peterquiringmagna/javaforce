@@ -1,5 +1,6 @@
 package javaforce.vm;
 
+import javaforce.api.linux.VMAPI;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;

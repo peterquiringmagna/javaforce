@@ -1,5 +1,6 @@
 package javaforce.ipc.transport;
 
+import javaforce.api.linux.LinuxAPI;
 import java.net.*;
 import java.nio.*;
 import java.nio.channels.*;

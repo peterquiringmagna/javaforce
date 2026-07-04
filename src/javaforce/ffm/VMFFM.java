@@ -6,7 +6,7 @@ import static java.lang.foreign.ValueLayout.*;
 
 import javaforce.*;
 import javaforce.ffm.*;
-import javaforce.api.*;
+import javaforce.api.linux.*;
 import javaforce.vm.*;
 
 /** VMAPI FFM implementation.

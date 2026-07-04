@@ -1,5 +1,6 @@
 package javaforce.vm;
 
+import javaforce.api.linux.VMAPI;
 import javaforce.api.*;
 import javaforce.ffm.*;
 

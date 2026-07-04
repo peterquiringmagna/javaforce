@@ -1,4 +1,4 @@
-package javaforce.api;
+package javaforce.api.linux;
 
 import javaforce.ffm.*;
 
