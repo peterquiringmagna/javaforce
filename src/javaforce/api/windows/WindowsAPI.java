@@ -1,4 +1,4 @@
-package javaforce.api;
+package javaforce.api.windows;
 
 import javaforce.ffm.*;
 

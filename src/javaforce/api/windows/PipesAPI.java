@@ -1,4 +1,4 @@
-package javaforce.api;
+package javaforce.api.windows;
 
 import javaforce.ffm.*;
 
@@ -7,9 +7,9 @@ import javaforce.ffm.*;
  * @author pquiring
  */
 
-public interface WinPipeAPI {
-  public static WinPipeAPI getInstance() {
-    return WinPipeFFM.getInstance();
+public interface PipesAPI {
+  public static PipesAPI getInstance() {
+    return PipesFFM.getInstance();
   }
 
   public long pipeCreate(String name, boolean first);

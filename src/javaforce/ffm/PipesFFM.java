@@ -6,24 +6,24 @@ import static java.lang.foreign.ValueLayout.*;
 
 import javaforce.*;
 import javaforce.ffm.*;
-import javaforce.api.*;
+import javaforce.api.windows.*;
 
-/** WinPipeAPI FFM implementation.
+/** PipesAPI FFM implementation.
  *
  * NON-AI MACHINE GENERATED CODE - DO NOT EDIT
  */
 
 
-public class WinPipeFFM implements WinPipeAPI {
+public class PipesFFM implements PipesAPI {
 
   private FFM ffm;
 
-  private static WinPipeFFM instance;
-  public static WinPipeFFM getInstance() {
+  private static PipesFFM instance;
+  public static PipesFFM getInstance() {
     if (instance == null) {
-      instance = new WinPipeFFM();
+      instance = new PipesFFM();
       if (!instance.ffm_init()) {
-        JFLog.log("WinPipeFFM init failed!");
+        JFLog.log("PipesFFM init failed!");
         instance = null;
       }
     }
@@ -46,7 +46,7 @@ public class WinPipeFFM implements WinPipeAPI {
   private boolean ffm_init() {
     MethodHandle init;
     ffm = FFM.getInstance();
-    init = ffm.getFunction("WinPipeAPIinit", ffm.getFunctionDesciptor(ValueLayout.JAVA_BOOLEAN));
+    init = ffm.getFunction("PipesAPIinit", ffm.getFunctionDesciptor(ValueLayout.JAVA_BOOLEAN));
     if (init == null) return false;
     try {if (!(boolean)init.invokeExact()) return false;} catch (Throwable t) {JFLog.log(t); return false;}
 

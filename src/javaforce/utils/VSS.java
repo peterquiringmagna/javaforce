@@ -1,5 +1,6 @@
 package javaforce.utils;
 
+import javaforce.api.windows.WindowsAPI;
 import javaforce.*;
 import javaforce.api.*;
 

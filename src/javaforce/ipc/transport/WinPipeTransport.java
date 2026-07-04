@@ -5,6 +5,7 @@ import java.util.*;
 import javaforce.*;
 import javaforce.ipc.*;
 import javaforce.api.*;
+import javaforce.api.windows.PipesAPI;
 
 /** DBus over Windows Pipes Transport.
  *
@@ -14,10 +15,10 @@ import javaforce.api.*;
 public class WinPipeTransport extends DBusTransport {
   private long ctx;
   private String name;
-  private WinPipeAPI api;
+  private PipesAPI api;
 
   public WinPipeTransport() {
-    api = WinPipeAPI.getInstance();
+    api = PipesAPI.getInstance();
   }
 
   private String makePipeName(String name) {

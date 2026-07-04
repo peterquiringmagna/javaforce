@@ -307,27 +307,9 @@
       <arg value="implements"/>
       <arg value="UIAPI"/>
     </java>
-    <java classpath="${home}/javaforce.jar" classname="javaforce.ffm.GenFFM" fork="true" jvm="${user.home}/bin/jfexec">
-      <arg value="src/javaforce/api/VMAPI.java"/>
-      <arg value="src/javaforce/ffm/VMFFM.java"/>
-      <arg value="api,vm"/>
-      <arg value="implements"/>
-      <arg value="VMAPI"/>
-    </java>
-    <java classpath="${home}/javaforce.jar" classname="javaforce.ffm.GenFFM" fork="true" jvm="${user.home}/bin/jfexec">
-      <arg value="src/javaforce/api/WinPipeAPI.java"/>
-      <arg value="src/javaforce/ffm/WinPipeFFM.java"/>
-      <arg value="api"/>
-      <arg value="implements"/>
-      <arg value="WinPipeAPI"/>
-    </java>
-    <java classpath="${home}/javaforce.jar" classname="javaforce.ffm.GenFFM" fork="true" jvm="${user.home}/bin/jfexec">
-      <arg value="src/javaforce/api/X11API.java"/>
-      <arg value="src/javaforce/ffm/X11FFM.java"/>
-      <arg value="api,linux"/>
-      <arg value="implements"/>
-      <arg value="X11API"/>
-    </java>
+
+    <!-- Linux APIs -->
+
     <java classpath="${home}/javaforce.jar" classname="javaforce.ffm.GenFFM" fork="true" jvm="${user.home}/bin/jfexec">
       <arg value="src/javaforce/api/LinuxAPI.java"/>
       <arg value="src/javaforce/ffm/LinuxFFM.java"/>
@@ -336,11 +318,35 @@
       <arg value="LinuxAPI"/>
     </java>
     <java classpath="${home}/javaforce.jar" classname="javaforce.ffm.GenFFM" fork="true" jvm="${user.home}/bin/jfexec">
-      <arg value="src/javaforce/api/WindowsAPI.java"/>
+      <arg value="src/javaforce/api/VMAPI.java"/>
+      <arg value="src/javaforce/ffm/VMFFM.java"/>
+      <arg value="api,vm"/>
+      <arg value="implements"/>
+      <arg value="VMAPI"/>
+    </java>
+    <java classpath="${home}/javaforce.jar" classname="javaforce.ffm.GenFFM" fork="true" jvm="${user.home}/bin/jfexec">
+      <arg value="src/javaforce/api/X11API.java"/>
+      <arg value="src/javaforce/ffm/X11FFM.java"/>
+      <arg value="api,linux"/>
+      <arg value="implements"/>
+      <arg value="X11API"/>
+    </java>
+
+    <!-- Windows APIs -->
+
+    <java classpath="${home}/javaforce.jar" classname="javaforce.ffm.GenFFM" fork="true" jvm="${user.home}/bin/jfexec">
+      <arg value="src/javaforce/api/windows/WindowsAPI.java"/>
       <arg value="src/javaforce/ffm/WindowsFFM.java"/>
-      <arg value="api"/>
+      <arg value="api.windows"/>
       <arg value="implements"/>
       <arg value="WindowsAPI"/>
+    </java>
+    <java classpath="${home}/javaforce.jar" classname="javaforce.ffm.GenFFM" fork="true" jvm="${user.home}/bin/jfexec">
+      <arg value="src/javaforce/api/windows/PipesAPI.java"/>
+      <arg value="src/javaforce/ffm/PipesFFM.java"/>
+      <arg value="api.windows"/>
+      <arg value="implements"/>
+      <arg value="PipesAPI"/>
     </java>
   </target>
 
