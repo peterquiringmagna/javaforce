@@ -1,3 +1,6 @@
+Jul 7, 2026 : 0.44 released!
+  - fix : Media Framework fixes
+
 Jun 29, 2026 : 0.43 released!
   - new : now supports WebUIServlets to configure settings
       with jfAdmin

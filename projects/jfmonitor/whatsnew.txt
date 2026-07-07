@@ -1,3 +1,6 @@
+Jul 7, 2026 : v0.27 released
+  - fix : Native API fixes
+
 Jun 10/2026 : 0.26 released
   - fix : version bump for JF changes
 

@@ -25,7 +25,7 @@ import javaforce.webui.tasks.*;
 import static javaforce.webui.Component.*;
 
 public class ConfigService implements WebUIServlet {
-  public static String version = "10.1";
+  public static String version = "10.2";
   public static String appname = "jfKVM";
   public static boolean debug = false;
   public static boolean debug_api = false;

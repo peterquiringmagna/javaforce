@@ -1,5 +1,8 @@
 What's new ??
 
+Jul 7, 2026 : v0.19 released
+  - fix : Media Framework fixes
+
 Feb 6/2026 : version 0.18 released
   - fix : Media Framework fixes
 

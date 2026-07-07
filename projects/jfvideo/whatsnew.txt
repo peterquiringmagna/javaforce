@@ -1,5 +1,8 @@
 Whatsnew...
 
+Jul 7, 2026 : v0.29 released
+  - fix : Media Framework fixes
+
 Feb 6, 2026 : v0.28 released!
   - fix : Media Framework fixes
 

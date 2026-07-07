@@ -10,7 +10,6 @@ jfaudio - Audio Editor
 jfbackup - Enterprise Tape Backup Service (Windows only)
 jfbroadcast - VoIP Auto Dialer
 jfburn - CD/DVD Burning (Linux only)
-jfbusserver - Internal App Messaging Service for jfLinux
  - C -
 jfcalc - Calculator
 jfcapture - Desktop Capture Utility for jfLinux

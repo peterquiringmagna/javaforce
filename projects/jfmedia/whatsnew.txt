@@ -1,6 +1,9 @@
 ChangeLog
 ---------
 
+Jul 7, 2026 : v0.31 released
+  - fix : Media Framework fixes
+
 June 8, 2026 : v0.30 released!
   - fix : version bump for ABI changes
 
