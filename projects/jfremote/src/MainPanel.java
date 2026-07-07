@@ -23,6 +23,7 @@ public class MainPanel extends javax.swing.JPanel {
     configFile = JF.getUserPath() + "/.jfremote.xml";
     loadConfig();
     JFAWT.assignHotKey(root, connect, java.awt.event.KeyEvent.VK_ENTER);
+    JFAWT.assignHotKey(root, new Runnable() {public void run() {System.exit(0);}}, java.awt.event.KeyEvent.VK_ESCAPE);
   }
 
   /**
