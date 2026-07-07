@@ -6,8 +6,6 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
-#include "../common/register.h"
-
 #define PAGE_SIZE (4*1024)
 #define BLOCK_SIZE (4*1024)
 
