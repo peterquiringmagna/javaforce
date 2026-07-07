@@ -10,6 +10,7 @@ import java.io.*;
 import java.net.*;
 
 import javaforce.*;
+import javaforce.api.*;
 import javaforce.awt.*;
 import javaforce.media.*;
 import javaforce.voip.*;
@@ -143,6 +144,7 @@ public class MediaApp extends javax.swing.JFrame {
    */
   public static void main(String args[]) {
     MediaApp.args = args;
+    MediaAPI.getInstance().mediaSetLogging(false);
     java.awt.EventQueue.invokeLater(new Runnable() {
       public void run() {
         new MediaApp().setVisible(true);

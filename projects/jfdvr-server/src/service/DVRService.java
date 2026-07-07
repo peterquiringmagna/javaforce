@@ -10,6 +10,7 @@ import java.io.*;
 import java.net.*;
 
 import javaforce.*;
+import javaforce.api.*;
 import javaforce.bus.*;
 import javaforce.service.*;
 import javaforce.webui.*;
@@ -64,6 +65,7 @@ public class DVRService implements RTSPServerInterface {
   private class Server extends Thread {
     public void run() {
       setName("DVRService");
+      MediaAPI.getInstance().mediaSetLogging(false);
       //init Paths
       Paths.init();
       log = Config.nextLog();

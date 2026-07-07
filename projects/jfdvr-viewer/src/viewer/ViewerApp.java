@@ -12,6 +12,7 @@ import java.net.*;
 import javax.swing.*;
 
 import javaforce.*;
+import javaforce.api.MediaAPI;
 import javaforce.awt.*;
 import javaforce.media.*;
 import javaforce.voip.*;
@@ -123,11 +124,7 @@ public class ViewerApp extends javax.swing.JFrame {
    */
   public static void main(String args[]) {
     ViewerApp.args = args;
-    for(String arg : args) {
-      if (arg.equals("jni")) {
-        FFM.disable();
-      }
-    }
+    MediaAPI.getInstance().mediaSetLogging(false);
     java.awt.EventQueue.invokeLater(new Runnable() {
       public void run() {
         new ViewerApp().setVisible(true);
