@@ -11,7 +11,7 @@ import javax.swing.*;
 
 import javaforce.*;
 import javaforce.awt.*;
-import javaforce.api.*;
+import javaforce.api.windows.*;
 
 public class CommandApp implements ActionListener {
 

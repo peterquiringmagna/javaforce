@@ -10,6 +10,7 @@ import java.util.*;
 
 import javaforce.*;
 import javaforce.api.*;
+import javaforce.api.windows.*;
 
 import jfcontrols.app.*;
 import jfcontrols.api.*;

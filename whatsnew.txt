@@ -1,5 +1,20 @@
 What's new...
 
+Jul 7/2026 : JF/113.0
+  - major native change : removed all JNI (except for 4 methods in JFHeap)
+  - FFM : most classes auto init on first usage
+  - app version bumps:
+    - jfAudio/0.26
+    - jfDVR/0.44(server,viewer)
+    - jfKVM/10.2
+    - jfMedia/0.31
+    - jfMonitor/0.27
+    - jfRecordCamera/0.19
+    - jfRecordDesktop/0.19
+    - jfTermServer/0.7
+    - jfVideo/0.29
+    - jfVNC/0.13(server,viewer)
+
 Jun 26/2026 : JF/112.0
   - jfAdmin/0.2
     - WebUIServlet API changed and is not compatible with previous version
