@@ -19,7 +19,7 @@ public class CLFFM implements CLAPI {
   private FFM ffm;
 
   private static CLFFM instance;
-  public static CLFFM getInstance() {
+  public static synchronized CLFFM getInstance() {
     if (instance == null) {
       instance = new CLFFM();
       if (!instance.ffm_init()) {

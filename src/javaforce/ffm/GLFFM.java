@@ -19,7 +19,7 @@ public class GLFFM implements GL {
   private FFM ffm;
 
   private static GLFFM instance;
-  public static GLFFM getInstance() {
+  public static synchronized GLFFM getInstance() {
     if (instance == null) {
       instance = new GLFFM();
       if (!instance.ffm_init()) {

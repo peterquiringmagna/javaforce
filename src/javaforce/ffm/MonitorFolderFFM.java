@@ -20,7 +20,7 @@ public class MonitorFolderFFM implements MonitorFolderAPI {
   private FFM ffm;
 
   private static MonitorFolderFFM instance;
-  public static MonitorFolderFFM getInstance() {
+  public static synchronized MonitorFolderFFM getInstance() {
     if (instance == null) {
       instance = new MonitorFolderFFM();
       if (!instance.ffm_init()) {

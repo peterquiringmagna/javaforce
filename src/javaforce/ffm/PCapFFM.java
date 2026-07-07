@@ -19,7 +19,7 @@ public class PCapFFM implements PCapAPI {
   private FFM ffm;
 
   private static PCapFFM instance;
-  public static PCapFFM getInstance() {
+  public static synchronized PCapFFM getInstance() {
     if (instance == null) {
       instance = new PCapFFM();
       if (!instance.ffm_init()) {

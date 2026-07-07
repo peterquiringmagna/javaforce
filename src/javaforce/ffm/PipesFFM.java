@@ -19,7 +19,7 @@ public class PipesFFM implements PipesAPI {
   private FFM ffm;
 
   private static PipesFFM instance;
-  public static PipesFFM getInstance() {
+  public static synchronized PipesFFM getInstance() {
     if (instance == null) {
       instance = new PipesFFM();
       if (!instance.ffm_init()) {

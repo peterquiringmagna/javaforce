@@ -91,7 +91,7 @@ public class GenFFM {
       src.append("  private FFM ffm;\n");
       src.append("\n");
       src.append("  private static " + cls_out + " instance;\n");
-      src.append("  public static " + cls_out + " getInstance() {\n");
+      src.append("  public static synchronized " + cls_out + " getInstance() {\n");
       src.append("    if (instance == null) {\n");
       src.append("      instance = new " + cls_out + "();\n");
       src.append("      if (!instance.ffm_init()) {\n");

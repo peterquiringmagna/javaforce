@@ -20,7 +20,7 @@ public class MediaFFM implements MediaAPI {
   private FFM ffm;
 
   private static MediaFFM instance;
-  public static MediaFFM getInstance() {
+  public static synchronized MediaFFM getInstance() {
     if (instance == null) {
       instance = new MediaFFM();
       if (!instance.ffm_init()) {

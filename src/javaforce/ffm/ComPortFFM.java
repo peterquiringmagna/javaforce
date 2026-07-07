@@ -19,7 +19,7 @@ public class ComPortFFM implements ComPortAPI {
   private FFM ffm;
 
   private static ComPortFFM instance;
-  public static ComPortFFM getInstance() {
+  public static synchronized ComPortFFM getInstance() {
     if (instance == null) {
       instance = new ComPortFFM();
       if (!instance.ffm_init()) {

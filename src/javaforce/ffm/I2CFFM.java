@@ -19,7 +19,7 @@ public class I2CFFM implements I2CAPI {
   private FFM ffm;
 
   private static I2CFFM instance;
-  public static I2CFFM getInstance() {
+  public static synchronized I2CFFM getInstance() {
     if (instance == null) {
       instance = new I2CFFM();
       if (!instance.ffm_init()) {

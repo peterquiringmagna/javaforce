@@ -19,7 +19,7 @@ public class LinuxFFM implements LinuxAPI {
   private FFM ffm;
 
   private static LinuxFFM instance;
-  public static LinuxFFM getInstance() {
+  public static synchronized LinuxFFM getInstance() {
     if (instance == null) {
       instance = new LinuxFFM();
       if (!instance.ffm_init()) {

@@ -20,7 +20,7 @@ public class VMFFM implements VMAPI {
   private FFM ffm;
 
   private static VMFFM instance;
-  public static VMFFM getInstance() {
+  public static synchronized VMFFM getInstance() {
     if (instance == null) {
       instance = new VMFFM();
       if (!instance.ffm_init()) {

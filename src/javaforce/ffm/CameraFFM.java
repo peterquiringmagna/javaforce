@@ -19,7 +19,7 @@ public class CameraFFM implements CameraAPI {
   private FFM ffm;
 
   private static CameraFFM instance;
-  public static CameraFFM getInstance() {
+  public static synchronized CameraFFM getInstance() {
     if (instance == null) {
       instance = new CameraFFM();
       if (!instance.ffm_init()) {

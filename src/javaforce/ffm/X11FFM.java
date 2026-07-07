@@ -21,7 +21,7 @@ public class X11FFM implements X11API {
   private FFM ffm;
 
   private static X11FFM instance;
-  public static X11FFM getInstance() {
+  public static synchronized X11FFM getInstance() {
     if (instance == null) {
       instance = new X11FFM();
       if (!instance.ffm_init()) {

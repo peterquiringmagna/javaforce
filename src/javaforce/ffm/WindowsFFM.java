@@ -19,7 +19,7 @@ public class WindowsFFM implements WindowsAPI {
   private FFM ffm;
 
   private static WindowsFFM instance;
-  public static WindowsFFM getInstance() {
+  public static synchronized WindowsFFM getInstance() {
     if (instance == null) {
       instance = new WindowsFFM();
       if (!instance.ffm_init()) {

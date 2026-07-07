@@ -20,7 +20,7 @@ public class UIFFM implements UIAPI {
   private FFM ffm;
 
   private static UIFFM instance;
-  public static UIFFM getInstance() {
+  public static synchronized UIFFM getInstance() {
     if (instance == null) {
       instance = new UIFFM();
       if (!instance.ffm_init()) {

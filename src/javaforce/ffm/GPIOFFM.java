@@ -19,7 +19,7 @@ public class GPIOFFM implements GPIOAPI {
   private FFM ffm;
 
   private static GPIOFFM instance;
-  public static GPIOFFM getInstance() {
+  public static synchronized GPIOFFM getInstance() {
     if (instance == null) {
       instance = new GPIOFFM();
       if (!instance.ffm_init()) {
