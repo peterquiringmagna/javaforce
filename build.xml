@@ -331,6 +331,13 @@
       <arg value="implements"/>
       <arg value="X11API"/>
     </java>
+    <java classpath="${home}/javaforce.jar" classname="javaforce.ffm.GenFFM" fork="true" jvm="${user.home}/bin/jfexec">
+      <arg value="src/javaforce/api/linux/WaylandAPI.java"/>
+      <arg value="src/javaforce/ffm/WaylandFFM.java"/>
+      <arg value="api.linux,linux"/>
+      <arg value="implements"/>
+      <arg value="WaylandAPI"/>
+    </java>
 
     <!-- Windows APIs -->
 
