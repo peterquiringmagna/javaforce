@@ -5,8 +5,6 @@
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
 
-#include "javaforce_jni_I2CJNI.h"
-
 #include "../common/register.h"
 
 static int file_i2c;

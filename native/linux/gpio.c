@@ -6,8 +6,6 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
-#include "javaforce_jni_GPIOJNI.h"
-
 #include "../common/register.h"
 
 #define PAGE_SIZE (4*1024)
