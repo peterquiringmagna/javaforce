@@ -77,6 +77,7 @@ public class CLFFM implements CLAPI {
 
 
   private boolean ffm_init() {
+    if (FFM.debug) JFLog.log("CLFFM init started");
     MethodHandle init;
     ffm = FFM.getInstance();
     Library[] libs = new Library[] {new Library("OpenCL")};
@@ -101,6 +102,7 @@ public class CLFFM implements CLAPI {
     clFreeKernel = ffm.getFunctionPtr("_clFreeKernel", ffm.getFunctionDesciptor(JAVA_BOOLEAN,JAVA_LONG,JAVA_LONG));
     clFreeBuffer = ffm.getFunctionPtr("_clFreeBuffer", ffm.getFunctionDesciptor(JAVA_BOOLEAN,JAVA_LONG,JAVA_LONG));
     clClose = ffm.getFunctionPtr("_clClose", ffm.getFunctionDesciptor(JAVA_BOOLEAN,JAVA_LONG));
+    if (FFM.debug) JFLog.log("CLFFM init complete");
     return true;
   }
 }

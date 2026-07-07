@@ -47,6 +47,7 @@ public class GPIOFFM implements GPIOAPI {
 
 
   private boolean ffm_init() {
+    if (FFM.debug) JFLog.log("GPIOFFM init started");
     MethodHandle init;
     ffm = FFM.getInstance();
     init = ffm.getFunction("GPIOAPIinit", ffm.getFunctionDesciptor(ValueLayout.JAVA_BOOLEAN));
@@ -58,6 +59,7 @@ public class GPIOFFM implements GPIOAPI {
     gpioConfigInput = ffm.getFunctionPtr("_gpioConfigInput", ffm.getFunctionDesciptor(JAVA_BOOLEAN,JAVA_INT));
     gpioWrite = ffm.getFunctionPtr("_gpioWrite", ffm.getFunctionDesciptor(JAVA_BOOLEAN,JAVA_INT,JAVA_BOOLEAN));
     gpioRead = ffm.getFunctionPtr("_gpioRead", ffm.getFunctionDesciptor(JAVA_BOOLEAN,JAVA_INT));
+    if (FFM.debug) JFLog.log("GPIOFFM init complete");
     return true;
   }
 }

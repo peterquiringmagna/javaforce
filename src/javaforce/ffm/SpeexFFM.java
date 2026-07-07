@@ -44,6 +44,7 @@ public class SpeexFFM implements SpeexAPI {
 
 
   private boolean ffm_init() {
+    if (FFM.debug) JFLog.log("SpeexFFM init started");
     MethodHandle init;
     ffm = FFM.getInstance();
     init = ffm.getFunction("SpeexAPIinit", ffm.getFunctionDesciptor(ValueLayout.JAVA_BOOLEAN));
@@ -54,6 +55,7 @@ public class SpeexFFM implements SpeexAPI {
     speexFree = ffm.getFunctionPtr("_speexFree", ffm.getFunctionDesciptorVoid(JAVA_LONG));
     speexDenoise = ffm.getFunctionPtr("_speexDenoise", ffm.getFunctionDesciptorVoid(JAVA_LONG,ADDRESS,JAVA_INT));
     speexEcho = ffm.getFunctionPtr("_speexEcho", ffm.getFunctionDesciptorVoid(JAVA_LONG,ADDRESS,ADDRESS,ADDRESS,JAVA_INT));
+    if (FFM.debug) JFLog.log("SpeexFFM init complete");
     return true;
   }
 }

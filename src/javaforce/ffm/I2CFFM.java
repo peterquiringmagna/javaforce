@@ -44,6 +44,7 @@ public class I2CFFM implements I2CAPI {
 
 
   private boolean ffm_init() {
+    if (FFM.debug) JFLog.log("I2CFFM init started");
     MethodHandle init;
     ffm = FFM.getInstance();
     init = ffm.getFunction("I2CAPIinit", ffm.getFunctionDesciptor(ValueLayout.JAVA_BOOLEAN));
@@ -54,6 +55,7 @@ public class I2CFFM implements I2CAPI {
     i2cSetSlave = ffm.getFunctionPtr("_i2cSetSlave", ffm.getFunctionDesciptor(JAVA_BOOLEAN,JAVA_INT));
     i2cWrite = ffm.getFunctionPtr("_i2cWrite", ffm.getFunctionDesciptor(JAVA_BOOLEAN,ADDRESS,JAVA_INT));
     i2cRead = ffm.getFunctionPtr("_i2cRead", ffm.getFunctionDesciptor(JAVA_INT,ADDRESS,JAVA_INT));
+    if (FFM.debug) JFLog.log("I2CFFM init complete");
     return true;
   }
 }

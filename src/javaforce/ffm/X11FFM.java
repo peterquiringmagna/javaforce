@@ -88,6 +88,7 @@ public class X11FFM implements X11API {
 
 
   private boolean ffm_init() {
+    if (FFM.debug) JFLog.log("X11FFM init started");
     MethodHandle init;
     ffm = FFM.getInstance();
     Library[] libs = new Library[] {new Library("X11")};
@@ -115,6 +116,7 @@ public class X11FFM implements X11API {
     x11_keysym_to_keycode = ffm.getFunctionPtr("_x11_keysym_to_keycode", ffm.getFunctionDesciptor(JAVA_INT,JAVA_CHAR));
     x11_send_event = ffm.getFunctionPtr("_x11_send_event", ffm.getFunctionDesciptor(JAVA_BOOLEAN,JAVA_INT,JAVA_BOOLEAN));
     x11_send_event_id = ffm.getFunctionPtr("_x11_send_event_id", ffm.getFunctionDesciptor(JAVA_BOOLEAN,JAVA_LONG,JAVA_INT,JAVA_BOOLEAN));
+    if (FFM.debug) JFLog.log("X11FFM init complete");
     return true;
   }
 }

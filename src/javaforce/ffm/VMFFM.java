@@ -138,6 +138,7 @@ public class VMFFM implements VMAPI {
 
 
   private boolean ffm_init() {
+    if (FFM.debug) JFLog.log("VMFFM init started");
     MethodHandle init;
     ffm = FFM.getInstance();
     init = ffm.getFunction("VMAPIinit", ffm.getFunctionDesciptor(ValueLayout.JAVA_BOOLEAN));
@@ -179,6 +180,7 @@ public class VMFFM implements VMAPI {
     vmCpuLoad = ffm.getFunctionPtr("_vmCpuLoad", ffm.getFunctionDesciptor(JAVA_LONG));
     vmGetAllStats = ffm.getFunctionPtr("_vmGetAllStats", ffm.getFunctionDesciptor(JAVA_BOOLEAN,JAVA_INT,JAVA_INT,JAVA_INT,JAVA_INT,JAVA_INT));
     vmConnect = ffm.getFunctionPtr("_vmConnect", ffm.getFunctionDesciptor(JAVA_BOOLEAN,ADDRESS));
+    if (FFM.debug) JFLog.log("VMFFM init complete");
     return true;
   }
 }

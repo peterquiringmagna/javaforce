@@ -44,6 +44,7 @@ public class PipesFFM implements PipesAPI {
 
 
   private boolean ffm_init() {
+    if (FFM.debug) JFLog.log("PipesFFM init started");
     MethodHandle init;
     ffm = FFM.getInstance();
     init = ffm.getFunction("PipesAPIinit", ffm.getFunctionDesciptor(ValueLayout.JAVA_BOOLEAN));
@@ -54,6 +55,7 @@ public class PipesFFM implements PipesAPI {
     pipeClose = ffm.getFunctionPtr("_pipeClose", ffm.getFunctionDesciptorVoid(JAVA_LONG));
     pipeRead = ffm.getFunctionPtr("_pipeRead", ffm.getFunctionDesciptor(JAVA_INT,JAVA_LONG,ADDRESS,JAVA_INT,JAVA_INT));
     pipeWrite = ffm.getFunctionPtr("_pipeWrite", ffm.getFunctionDesciptor(JAVA_INT,ADDRESS,ADDRESS,JAVA_INT,JAVA_INT));
+    if (FFM.debug) JFLog.log("PipesFFM init complete");
     return true;
   }
 }

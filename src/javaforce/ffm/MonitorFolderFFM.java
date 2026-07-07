@@ -42,6 +42,7 @@ public class MonitorFolderFFM implements MonitorFolderAPI {
 
 
   private boolean ffm_init() {
+    if (FFM.debug) JFLog.log("MonitorFolderFFM init started");
     MethodHandle init;
     ffm = FFM.getInstance();
     init = ffm.getFunction("MonitorFolderAPIinit", ffm.getFunctionDesciptor(ValueLayout.JAVA_BOOLEAN));
@@ -51,6 +52,7 @@ public class MonitorFolderFFM implements MonitorFolderAPI {
     monitorFolderCreate = ffm.getFunctionPtr("_monitorFolderCreate", ffm.getFunctionDesciptor(JAVA_LONG,ADDRESS));
     monitorFolderPoll = ffm.getFunctionPtr("_monitorFolderPoll", ffm.getFunctionDesciptorVoid(JAVA_LONG,ADDRESS));
     monitorFolderClose = ffm.getFunctionPtr("_monitorFolderClose", ffm.getFunctionDesciptorVoid(JAVA_LONG));
+    if (FFM.debug) JFLog.log("MonitorFolderFFM init complete");
     return true;
   }
 }

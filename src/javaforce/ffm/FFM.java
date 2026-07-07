@@ -79,7 +79,7 @@ public class FFM {
     }
   }
 
-  private static boolean debug = false;
+  public static boolean debug = false;
   private static String lib;  //shared JF library
 
   private static Linker linker;

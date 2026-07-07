@@ -115,7 +115,7 @@ public class GenFFM {
         }
       }
       ctor.append("  private boolean ffm_init() {\n");
-//      ctor.append("    JFLog.log(\"" + cls_out + " init\");\n");
+      ctor.append("    if (FFM.debug) JFLog.log(\"" + cls_out + " init started\");\n");
       ctor.append("    MethodHandle init;\n");
       ctor.append("    ffm = FFM.getInstance();\n");
       if (libs != null) {
@@ -384,6 +384,7 @@ public class GenFFM {
           ctor.append(ctor2);
         }
       }
+      ctor.append("    if (FFM.debug) JFLog.log(\"" + cls_out + " init complete\");\n");
       ctor.append("    return true;\n");
       ctor.append("  }\n");
       src.append("\n");

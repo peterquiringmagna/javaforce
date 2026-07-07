@@ -104,6 +104,7 @@ public class LinuxFFM implements LinuxAPI {
 
 
   private boolean ffm_init() {
+    if (FFM.debug) JFLog.log("LinuxFFM init started");
     MethodHandle init;
     ffm = FFM.getInstance();
     Library[] libs = new Library[] {new Library("pam"),new Library("ncurses")};
@@ -137,6 +138,7 @@ public class LinuxFFM implements LinuxAPI {
     fileSetModifiedTime = ffm.getFunctionPtr("_fileSetModifiedTime", ffm.getFunctionDesciptorVoid(ADDRESS,JAVA_LONG));
     fileGetID = ffm.getFunctionPtr("_fileGetID", ffm.getFunctionDesciptor(JAVA_LONG,ADDRESS));
     getUID = ffm.getFunctionPtr("_getUID", ffm.getFunctionDesciptor(JAVA_INT));
+    if (FFM.debug) JFLog.log("LinuxFFM init complete");
     return true;
   }
 }

@@ -59,6 +59,7 @@ public class CameraFFM implements CameraAPI {
 
 
   private boolean ffm_init() {
+    if (FFM.debug) JFLog.log("CameraFFM init started");
     MethodHandle init;
     ffm = FFM.getInstance();
     Library[] libs = new Library[] {new Library("v4l2")};
@@ -77,6 +78,7 @@ public class CameraFFM implements CameraAPI {
     cameraGetFrame = ffm.getFunctionPtr("_cameraGetFrame", ffm.getFunctionDesciptorVoid(JAVA_LONG));
     cameraGetWidth = ffm.getFunctionPtr("_cameraGetWidth", ffm.getFunctionDesciptor(JAVA_INT,JAVA_LONG));
     cameraGetHeight = ffm.getFunctionPtr("_cameraGetHeight", ffm.getFunctionDesciptor(JAVA_INT,JAVA_LONG));
+    if (FFM.debug) JFLog.log("CameraFFM init complete");
     return true;
   }
 }

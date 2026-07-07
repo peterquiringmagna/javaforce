@@ -186,6 +186,7 @@ public class MediaFFM implements MediaAPI {
 
 
   private boolean ffm_init() {
+    if (FFM.debug) JFLog.log("MediaFFM init started");
     MethodHandle init;
     ffm = FFM.getInstance();
     Library[] libs = new Library[] {new Library("avcodec"),new Library("avdevice"),new Library("avfilter"),new Library("avformat"),new Library("avutil"),new Library("swscale"),new Library("swresample")};
@@ -246,6 +247,7 @@ public class MediaFFM implements MediaAPI {
     videoEncoderStop = ffm.getFunctionPtr("_videoEncoderStop", ffm.getFunctionDesciptorVoid(JAVA_LONG));
     videoEncoderEncode = ffm.getFunctionPtr("_videoEncoderEncode", ffm.getFunctionDesciptorVoid(JAVA_LONG,ADDRESS,JAVA_INT,JAVA_INT));
     compareFrames = ffm.getFunctionPtr("_compareFrames", ffm.getFunctionDesciptor(JAVA_FLOAT,ADDRESS,ADDRESS,JAVA_INT,JAVA_INT));
+    if (FFM.debug) JFLog.log("MediaFFM init complete");
     return true;
   }
 }

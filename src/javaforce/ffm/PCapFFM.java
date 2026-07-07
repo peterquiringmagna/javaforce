@@ -53,6 +53,7 @@ public class PCapFFM implements PCapAPI {
 
 
   private boolean ffm_init() {
+    if (FFM.debug) JFLog.log("PCapFFM init started");
     MethodHandle init;
     ffm = FFM.getInstance();
     init = ffm.getFunction("PCapAPIinit", ffm.getFunctionDesciptor(ValueLayout.JAVA_BOOLEAN));
@@ -66,6 +67,7 @@ public class PCapFFM implements PCapAPI {
     pcapCompile = ffm.getFunctionPtr("_pcapCompile", ffm.getFunctionDesciptor(JAVA_BOOLEAN,JAVA_LONG,ADDRESS));
     pcapRead = ffm.getFunctionPtr("_pcapRead", ffm.getFunctionDesciptorVoid(JAVA_LONG));
     pcapWrite = ffm.getFunctionPtr("_pcapWrite", ffm.getFunctionDesciptor(JAVA_BOOLEAN,JAVA_LONG,ADDRESS,JAVA_INT,JAVA_INT));
+    if (FFM.debug) JFLog.log("PCapFFM init complete");
     return true;
   }
 }

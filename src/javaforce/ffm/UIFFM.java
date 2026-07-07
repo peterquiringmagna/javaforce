@@ -93,6 +93,7 @@ public class UIFFM implements UIAPI {
 
 
   private boolean ffm_init() {
+    if (FFM.debug) JFLog.log("UIFFM init started");
     MethodHandle init;
     ffm = FFM.getInstance();
     init = ffm.getFunction("UIAPIinit", ffm.getFunctionDesciptor(ValueLayout.JAVA_BOOLEAN));
@@ -119,6 +120,7 @@ public class UIFFM implements UIAPI {
     uiWindowLockCursor = ffm.getFunctionPtr("_uiWindowLockCursor", ffm.getFunctionDesciptorVoid(JAVA_LONG));
     uiWindowGetPos = ffm.getFunctionPtr("_uiWindowGetPos", ffm.getFunctionDesciptorVoid(JAVA_LONG,ADDRESS));
     uiWindowSetPos = ffm.getFunctionPtr("_uiWindowSetPos", ffm.getFunctionDesciptorVoid(JAVA_LONG,JAVA_INT,JAVA_INT));
+    if (FFM.debug) JFLog.log("UIFFM init complete");
     return true;
   }
 }

@@ -44,6 +44,7 @@ public class ComPortFFM implements ComPortAPI {
 
 
   private boolean ffm_init() {
+    if (FFM.debug) JFLog.log("ComPortFFM init started");
     MethodHandle init;
     ffm = FFM.getInstance();
     init = ffm.getFunction("ComPortAPIinit", ffm.getFunctionDesciptor(ValueLayout.JAVA_BOOLEAN));
@@ -54,6 +55,7 @@ public class ComPortFFM implements ComPortAPI {
     comRead = ffm.getFunctionPtr("_comRead", ffm.getFunctionDesciptor(JAVA_INT,JAVA_LONG,ADDRESS,JAVA_INT));
     comWrite = ffm.getFunctionPtr("_comWrite", ffm.getFunctionDesciptor(JAVA_INT,JAVA_LONG,ADDRESS,JAVA_INT));
     comClose = ffm.getFunctionPtr("_comClose", ffm.getFunctionDesciptorVoid(JAVA_LONG));
+    if (FFM.debug) JFLog.log("ComPortFFM init complete");
     return true;
   }
 }

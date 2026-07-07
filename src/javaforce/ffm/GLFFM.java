@@ -236,6 +236,7 @@ public class GLFFM implements GL {
 
 
   private boolean ffm_init() {
+    if (FFM.debug) JFLog.log("GLFFM init started");
     MethodHandle init;
     ffm = FFM.getInstance();
     Library[] libs = new Library[] {new Library("GL")};
@@ -311,6 +312,7 @@ public class GLFFM implements GL {
     glUniform1i = ffm.getFunctionPtr("_glUniform1i", ffm.getFunctionDesciptorVoid(JAVA_INT,JAVA_INT));
     glVertexAttribPointer = ffm.getFunctionPtr("_glVertexAttribPointer", ffm.getFunctionDesciptorVoid(JAVA_INT,JAVA_INT,JAVA_INT,JAVA_INT,JAVA_INT,JAVA_INT));
     glViewport = ffm.getFunctionPtr("_glViewport", ffm.getFunctionDesciptorVoid(JAVA_INT,JAVA_INT,JAVA_INT,JAVA_INT));
+    if (FFM.debug) JFLog.log("GLFFM init complete");
     return true;
   }
 }

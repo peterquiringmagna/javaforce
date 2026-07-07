@@ -188,6 +188,7 @@ public class WindowsFFM implements WindowsAPI {
 
 
   private boolean ffm_init() {
+    if (FFM.debug) JFLog.log("WindowsFFM init started");
     MethodHandle init;
     ffm = FFM.getInstance();
     init = ffm.getFunction("WindowsAPIinit", ffm.getFunctionDesciptor(ValueLayout.JAVA_BOOLEAN));
@@ -246,6 +247,7 @@ public class WindowsFFM implements WindowsAPI {
     vssDeleteShadowAll = ffm.getFunctionPtr("_vssDeleteShadowAll", ffm.getFunctionDesciptor(JAVA_BOOLEAN));
     vssMountShadow = ffm.getFunctionPtr("_vssMountShadow", ffm.getFunctionDesciptor(JAVA_BOOLEAN,ADDRESS,ADDRESS));
     vssUnmountShadow = ffm.getFunctionPtr("_vssUnmountShadow", ffm.getFunctionDesciptor(JAVA_BOOLEAN,ADDRESS));
+    if (FFM.debug) JFLog.log("WindowsFFM init complete");
     return true;
   }
 }
