@@ -17,7 +17,7 @@ public interface WaylandAPI {
   //wayland
 
   public long wl_display_create();
-  public long wl_create_loop_create();
+  public long wl_event_loop_create();
   public String wl_display_add_socket_auto(long display);
   public void wl_display_run(long display);
 

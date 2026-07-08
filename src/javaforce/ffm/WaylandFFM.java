@@ -34,8 +34,8 @@ public class WaylandFFM implements WaylandAPI {
   private MethodHandle wl_display_create;
   public long wl_display_create() { try { long _ret_value_ = (long)wl_display_create.invokeExact();return _ret_value_; } catch (Throwable t) { JFLog.log(t);  return -1;} }
 
-  private MethodHandle wl_create_loop_create;
-  public long wl_create_loop_create() { try { long _ret_value_ = (long)wl_create_loop_create.invokeExact();return _ret_value_; } catch (Throwable t) { JFLog.log(t);  return -1;} }
+  private MethodHandle wl_event_loop_create;
+  public long wl_event_loop_create() { try { long _ret_value_ = (long)wl_event_loop_create.invokeExact();return _ret_value_; } catch (Throwable t) { JFLog.log(t);  return -1;} }
 
   private MethodHandle wl_display_add_socket_auto;
   public String wl_display_add_socket_auto(long display) { try { String _ret_value_ = FFM.getString((MemorySegment)wl_display_add_socket_auto.invokeExact(display));return _ret_value_; } catch (Throwable t) { JFLog.log(t);  return null;} }
@@ -83,7 +83,7 @@ public class WaylandFFM implements WaylandAPI {
     try {if (!(boolean)init.invokeExact(libs[0].getPath(arena),libs[1].getPath(arena),libs[2].getPath(arena))) return false;} catch (Throwable t) {JFLog.log(t); return false;}
 
     wl_display_create = ffm.getFunctionPtr("_wl_display_create", ffm.getFunctionDesciptor(JAVA_LONG));
-    wl_create_loop_create = ffm.getFunctionPtr("_wl_create_loop_create", ffm.getFunctionDesciptor(JAVA_LONG));
+    wl_event_loop_create = ffm.getFunctionPtr("_wl_event_loop_create", ffm.getFunctionDesciptor(JAVA_LONG));
     wl_display_add_socket_auto = ffm.getFunctionPtr("_wl_display_add_socket_auto", ffm.getFunctionDesciptor(ADDRESS,JAVA_LONG));
     wl_display_run = ffm.getFunctionPtr("_wl_display_run", ffm.getFunctionDesciptorVoid(JAVA_LONG));
     wl_display_destroy = ffm.getFunctionPtr("_wl_display_destroy", ffm.getFunctionDesciptor(JAVA_BOOLEAN,JAVA_LONG));

@@ -15,7 +15,7 @@ public class Wayland {
   public void start() {
     WaylandAPI api = WaylandAPI.getInstance();
     long display = api.wl_display_create();
-    long event_loop = api.wl_create_loop_create();
+    long event_loop = api.wl_event_loop_create();
     long session = api.wlr_session_create(display);
     long backend = api.wlr_backend_autocreate(event_loop, session);
     api.wlr_backend_start(backend);
