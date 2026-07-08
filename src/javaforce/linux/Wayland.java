@@ -1,5 +1,6 @@
 package javaforce.linux;
 
+import javaforce.*;
 import javaforce.api.linux.*;
 
 /** Wayland Compositor.
@@ -10,6 +11,7 @@ import javaforce.api.linux.*;
  */
 
 public class Wayland {
+  private static int LOG_DISPLAY = 1;
   public void start() {
     WaylandAPI api = WaylandAPI.getInstance();
     long display = api.wl_display_create();
@@ -21,6 +23,7 @@ public class Wayland {
     long compositor = api.wlr_compositor_create(display, renderer);
     long xwayland = api.wlr_xwayland_create(display, compositor, true);
     String socket = api.wl_display_add_socket_auto(display);
+    JFLog.log(LOG_DISPLAY, "WAYLAND_SOCKET=" + socket);
     LinuxAPI.getInstance().setEnv("WAYLAND_DISPLAY", socket);
     api.wl_display_run(display);
     api.wlr_xwayland_destroy(xwayland);

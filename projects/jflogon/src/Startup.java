@@ -11,13 +11,14 @@ import java.util.*;
 
 import javaforce.*;
 import javaforce.bus.*;
-import javaforce.linux.Linux;
+import javaforce.linux.*;
 
 public class Startup implements ShellProcessListener {
   private static ShellProcess display_mgr;
   private static boolean rebootFlag, shutdownFlag;
-  private static boolean wayland = false;
+  private static boolean is_wayland = false;
   private static Properties props;
+  private static Wayland wayland;
 
   public static AutoMounter autoMounter;
   public static JBusServer jbusServer;
@@ -34,7 +35,7 @@ public class Startup implements ShellProcessListener {
       fixSudoers();
       Linux.init();
       props = Linux.getJFLinuxProperties();
-      wayland = getProperty("wayland").equals("true");
+      is_wayland = getProperty("wayland").equals("true");
       //start jfsystemmgr
       jbusServer = new JBusServer(SystemBusNames.system, new JBusMethods());
       jbusServer.connect();
@@ -47,12 +48,8 @@ public class Startup implements ShellProcessListener {
       hidePlymouth();
       create_server_xauth();
       boolean retry;
-      if (wayland) {
+      if (is_wayland) {
         config_wayland();
-        String[] env = JF.getEnvironment();
-        for(String e : env) {
-          JFLog.log(LOG_DISPLAY, e);
-        }
       }
       do {
         retry = false;
@@ -96,8 +93,16 @@ public class Startup implements ShellProcessListener {
   }
 
   private static void start() throws Exception {
-    if (wayland) {
-      start(new String[] {"/usr/bin/weston", "--modules", "jf-desktop-shell.so"}, new String[] {"XDG_RUNTIME_DIR=/run"});
+    if (is_wayland) {
+      if (false) {
+        start(new String[] {"/usr/bin/weston", "--modules", "jf-desktop-shell.so"}, new String[] {"XDG_RUNTIME_DIR=/run"});
+      } else {
+        new Thread() {
+          public void run() {
+            wayland.start();
+          }
+        }.start();
+      }
     } else {
       start(new String[] {"/usr/bin/X"}, null);
     }
@@ -200,7 +205,7 @@ public class Startup implements ShellProcessListener {
       if (user == null) user = "jflive";
       //run session as live user
       runSession(user, "/usr/bin/jfdesktop", null, null, false);
-      if (!wayland) {
+      if (!is_wayland) {
         stop();
       }
       JF.sleep(1000);
@@ -214,7 +219,7 @@ public class Startup implements ShellProcessListener {
 
   public static void runSession(String user, String session, String env_names[], String env_values[], boolean domainLogon) {
     try {
-      if (wayland) {
+      if (is_wayland) {
         stop();
       }
       getUserDetails(user);
@@ -273,7 +278,7 @@ public class Startup implements ShellProcessListener {
           Startup.shutdown("-P");
           return;
         }
-        if (wayland) {
+        if (is_wayland) {
           start();
         }
       } else {
@@ -334,7 +339,7 @@ public class Startup implements ShellProcessListener {
   }
 
   public static void createLogon() {
-    if (!wayland) {
+    if (!is_wayland) {
       Linux.x11_rr_reset("800x600");
     }
     try {
@@ -553,6 +558,12 @@ public class Startup implements ShellProcessListener {
     JF.copyAll("/etc/jflogon/labwc-menu.xml", sway + "/menu.xml");
   }
   private static void config_wayland() {
-
+    wayland = new Wayland();
+  }
+  private static void log_env() {
+    String[] env = JF.getEnvironment();
+    for(String e : env) {
+      JFLog.log(LOG_DISPLAY, e);
+    }
   }
 }
