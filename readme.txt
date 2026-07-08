@@ -68,7 +68,7 @@ Pre-built packages are hosted on sourceforge.net which can be installed through 
 
 Native ABI Compatibility
 ------------------------
-This version of JavaForce is compatible with native loaders/library since 111.0
+This version of JavaForce is compatible with native loaders/library since 113.0
 
 JavaForce Ant tasks:
 --------------------
