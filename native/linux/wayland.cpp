@@ -54,7 +54,7 @@ void* wl_roots = NULL;
 
 extern "C" {
   JNIEXPORT void* _wl_display_create;
-  JNIEXPORT void* _wl_create_loop_create;
+  JNIEXPORT void* _wl_event_loop_create;
   JNIEXPORT void* _wl_display_add_socket_auto;
   JNIEXPORT void* _wl_display_run;
   JNIEXPORT void* _wl_display_destroy;
@@ -75,7 +75,7 @@ extern "C" {
         printf("Warning:dlopen(wayland_server.so) unsuccessful\n");
       } else {
         getFunction(wl_server, (void**)&_wl_display_create, "wl_display_create");
-        getFunction(wl_server, (void**)&_wl_create_loop_create, "wl_create_loop_create");
+        getFunction(wl_server, (void**)&_wl_event_loop_create, "wl_event_loop_create");
         getFunction(wl_server, (void**)&_wl_display_add_socket_auto, "wl_display_add_socket_auto");
         getFunction(wl_server, (void**)&_wl_display_run, "wl_display_run");
         getFunction(wl_server, (void**)&_wl_display_destroy, "wl_display_destroy");
