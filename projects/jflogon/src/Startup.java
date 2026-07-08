@@ -99,6 +99,7 @@ public class Startup implements ShellProcessListener {
       } else {
         new Thread() {
           public void run() {
+            JFLog.log("Starting Wayland...");
             wayland.start();
           }
         }.start();
