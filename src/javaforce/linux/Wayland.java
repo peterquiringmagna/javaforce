@@ -14,19 +14,31 @@ import javaforce.api.linux.*;
  */
 
 public class Wayland {
-  private static int LOG_DISPLAY = 1;
   private static boolean debug = true;
-  public void start() {
+  public boolean start() {
     WaylandAPI api = WaylandAPI.getInstance();
     Arena arena = Arena.ofAuto();
     long display = api.wl_display_create();
     if (debug) JFLog.log("display=" + display);
+    if (display == 0) {
+      JFLog.log("Wayland:wl_display_create() failed!");
+      return false;
+    }
     long event_loop = api.wl_event_loop_create();
     if (debug) JFLog.log("event_loop=" + event_loop);
+    if (event_loop == 0) {
+      JFLog.log("Wayland:wl_event_loop_create() failed!");
+      return false;
+    }
+    LinuxAPI.getInstance().setEnv("LIBSEAT_BACKEND", "logind");
     long session = 0;
     MemorySegment session_ptr = arena.allocateFrom(JAVA_LONG, session);
     long backend = api.wlr_backend_autocreate(display, session_ptr.address());
     if (debug) JFLog.log("backend=" + backend);
+    if (backend == 0) {
+      JFLog.log("Wayland:wlr_backend_autocreate() failed!");
+      return false;
+    }
     if (session_ptr.address() != 0) {
       session = session_ptr.get(JAVA_LONG, 0);
       if (debug) JFLog.log("session=" + session);
@@ -34,8 +46,16 @@ public class Wayland {
     api.wlr_backend_start(backend);
     long renderer = api.wlr_renderer_autocreate(backend);
     if (debug) JFLog.log("renderer=" + renderer);
+    if (renderer == 0) {
+      JFLog.log("Wayland:wlr_renderer_autocreate() failed!");
+      return false;
+    }
     long compositor = api.wlr_compositor_create(display, 6, renderer);
     if (debug) JFLog.log("compositor=" + compositor);
+    if (compositor == 0) {
+      JFLog.log("Wayland:wlr_compositor_create() failed!");
+      return false;
+    }
     long xwayland = api.wlr_xwayland_create(display, compositor, true);
     if (debug) JFLog.log("xwayland=" + xwayland);
     String socket = api.wl_display_add_socket_auto(display);
@@ -47,6 +67,7 @@ public class Wayland {
     api.wlr_xwayland_destroy(xwayland);
     api.wlr_backend_destroy(backend);
     api.wl_display_destroy(display);
+    return true;
   }
   public void stop() {
     //TODO
