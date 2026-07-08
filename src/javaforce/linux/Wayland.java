@@ -33,7 +33,7 @@ public class Wayland {
     LinuxAPI.getInstance().setEnv("LIBSEAT_BACKEND", "logind");
     long session = 0;
     MemorySegment session_ptr = arena.allocateFrom(JAVA_LONG, session);
-    long backend = api.wlr_backend_autocreate(display, session_ptr.address());
+    long backend = api.wlr_backend_autocreate(event_loop, session_ptr.address());
     if (debug) JFLog.log("backend=" + backend);
     if (backend == 0) {
       JFLog.log("Wayland:wlr_backend_autocreate() failed!");
