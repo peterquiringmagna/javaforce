@@ -148,6 +148,8 @@ extern "C" {
 
 #include "x11.cpp"
 
+#include "wayland.cpp"
+
 #include "pam.cpp"
 
 #ifndef __FreeBSD__

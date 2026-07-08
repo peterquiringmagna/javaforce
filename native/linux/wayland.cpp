@@ -54,7 +54,21 @@ void* wl_roots = NULL;
 
 extern "C" {
   JNIEXPORT void* _wl_display_create;
-  JNIEXPORT bool WaylandAPIinit(const char* libwayland_server, const char* libwayland_client, const char* libwlroots) {
+  JNIEXPORT void* _wl_create_loop_create;
+  JNIEXPORT void* _wl_display_add_socket_auto;
+  JNIEXPORT void* _wl_display_run;
+  JNIEXPORT void* _wl_display_destroy;
+
+  JNIEXPORT void* _wlr_session_create;
+  JNIEXPORT void* _wlr_backend_autocreate;
+  JNIEXPORT void* _wlr_backend_start;
+  JNIEXPORT void* _wlr_renderer_autocreate;
+  JNIEXPORT void* _wlr_compositor_create;
+  JNIEXPORT void* _wlr_xwayland_create;
+  JNIEXPORT void* _wlr_xwayland_destroy;
+  JNIEXPORT void* _wlr_backend_destroy;
+
+  JNIEXPORT bool JNICALL WaylandAPIinit(const char* libwayland_server, const char* libwayland_client, const char* libwlroots) {
     if (wl_server == NULL && libwayland_server != NULL) {
       wl_server = dlopen(libwayland_server, RTLD_LAZY | RTLD_GLOBAL);
       if (wl_server == NULL) {
@@ -76,8 +90,8 @@ extern "C" {
         //TODO
       }
     }
-    if (wl_roots == NULL && libwayland_roots != NULL) {
-      wl_roots = dlopen(libwayland_roots, RTLD_LAZY | RTLD_GLOBAL);
+    if (wl_roots == NULL && libwlroots != NULL) {
+      wl_roots = dlopen(libwlroots, RTLD_LAZY | RTLD_GLOBAL);
       if (wl_roots == NULL) {
         printf("Warning:dlopen(wlroots.so) unsuccessful\n");
       } else {

@@ -65,14 +65,14 @@ public class Library {
     }
   }
 
-  /** Find native libraries in folder (recursive). */
+  /** Find native libraries in folders provided. */
   public static boolean findLibraries(File[] folders, Library[] libs) {
     String ext = getExt();
     for(int i=0;i<libs.length;i++) {
       if (JF.isUnix()) {
         libs[i].name = "lib" + libs[i].name;
       }
-      libs[i].match = libs[i].name.toLowerCase() + "([-][0-9]*)?" + ext + "([.][0-9]*)*";
+      libs[i].match = libs[i].name.toLowerCase() + "[-]?" + "([.][0-9]*)*" + ext + "([.][0-9]*)*";
     }
     if (folders == null) {
       folders = getSysFolders();
