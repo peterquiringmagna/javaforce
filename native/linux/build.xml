@@ -15,11 +15,11 @@
       <exec command="ar r native.a native.o glfw.o glfw-null.o"/>
 
       <!-- build native executables -->
-      <exec command="gcc ${opt} -I ${java.home}/include -I ${java.home}/include/@{linux} -I ../headers -I ../opencl -Wno-write-strings loader.cpp native.a @{libs} -o ${user.home}/bin/linux64.bin"/>
-      <exec command="gcc ${opt} -D_JF_SERVICE -I ${java.home}/include -I ${java.home}/include/@{linux} -I ../headers -I ../opencl -Wno-write-strings loader.cpp native.a @{libs} -o ${user.home}/bin/linux64s.bin"/>
+      <exec command="gcc ${opt} -I ${java.home}/include -I ${java.home}/include/@{linux} -I ../headers -I ../opencl -Wno-write-strings loader.cpp native.a @{libs} -o ${user.home}/bin/linux64.tmp"/>
+      <exec command="gcc ${opt} -D_JF_SERVICE -I ${java.home}/include -I ${java.home}/include/@{linux} -I ../headers -I ../opencl -Wno-write-strings loader.cpp native.a @{libs} -o ${user.home}/bin/linux64s.tmp"/>
       <!-- fedora adds a build-id that conflicts each time the executable in found in a package -->
-      <exec command="strip -R .note.gnu.build-id ${user.home}/bin/linux64.bin"/>
-      <exec command="strip -R .note.gnu.build-id ${user.home}/bin/linux64s.bin"/>
+      <exec command="objcopy --remove-section=.note.gnu.build-id ${user.home}/bin/linux64.tmp ${user.home}/bin/linux64.bin"/>
+      <exec command="objcopy --remove-section=.note.gnu.build-id ${user.home}/bin/linux64s.tmp ${user.home}/bin/linux64s.bin"/>
 
       <!-- build cli version -->
       <exec command="gcc ${opt} -I ${java.home}/include -I ${java.home}/include/@{linux} -I ../headers -I ../opencl -Wno-write-strings -D_JF_CLI loader.cpp native.a @{libs} -o ${user.home}/bin/jfexec"/>
@@ -33,6 +33,9 @@
         <fileset dir=".">
           <include name="*.o"/>
           <include name="*.a"/>
+        </fileset>
+        <fileset dir="${user.home}/bin">
+          <include name="*.tmp"/>
         </fileset>
       </delete>
     </sequential>
