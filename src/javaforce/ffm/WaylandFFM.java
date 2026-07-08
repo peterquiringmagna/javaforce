@@ -59,7 +59,7 @@ public class WaylandFFM implements WaylandAPI {
   public long wlr_renderer_autocreate(long backend) { try { long _ret_value_ = (long)wlr_renderer_autocreate.invokeExact(backend);return _ret_value_; } catch (Throwable t) { JFLog.log(t);  return -1;} }
 
   private MethodHandle wlr_compositor_create;
-  public long wlr_compositor_create(long display,long renderer) { try { long _ret_value_ = (long)wlr_compositor_create.invokeExact(display,renderer);return _ret_value_; } catch (Throwable t) { JFLog.log(t);  return -1;} }
+  public long wlr_compositor_create(long display,int version,long renderer) { try { long _ret_value_ = (long)wlr_compositor_create.invokeExact(display,version,renderer);return _ret_value_; } catch (Throwable t) { JFLog.log(t);  return -1;} }
 
   private MethodHandle wlr_xwayland_create;
   public long wlr_xwayland_create(long display,long compositor,boolean lazy) { try { long _ret_value_ = (long)wlr_xwayland_create.invokeExact(display,compositor,lazy);return _ret_value_; } catch (Throwable t) { JFLog.log(t);  return -1;} }
@@ -91,7 +91,7 @@ public class WaylandFFM implements WaylandAPI {
     wlr_backend_autocreate = ffm.getFunctionPtr("_wlr_backend_autocreate", ffm.getFunctionDesciptor(JAVA_LONG,JAVA_LONG,JAVA_LONG));
     wlr_backend_start = ffm.getFunctionPtr("_wlr_backend_start", ffm.getFunctionDesciptorVoid(JAVA_LONG));
     wlr_renderer_autocreate = ffm.getFunctionPtr("_wlr_renderer_autocreate", ffm.getFunctionDesciptor(JAVA_LONG,JAVA_LONG));
-    wlr_compositor_create = ffm.getFunctionPtr("_wlr_compositor_create", ffm.getFunctionDesciptor(JAVA_LONG,JAVA_LONG,JAVA_LONG));
+    wlr_compositor_create = ffm.getFunctionPtr("_wlr_compositor_create", ffm.getFunctionDesciptor(JAVA_LONG,JAVA_LONG,JAVA_INT,JAVA_LONG));
     wlr_xwayland_create = ffm.getFunctionPtr("_wlr_xwayland_create", ffm.getFunctionDesciptor(JAVA_LONG,JAVA_LONG,JAVA_LONG,JAVA_BOOLEAN));
     wlr_xwayland_destroy = ffm.getFunctionPtr("_wlr_xwayland_destroy", ffm.getFunctionDesciptorVoid(JAVA_LONG));
     wlr_backend_destroy = ffm.getFunctionPtr("_wlr_backend_destroy", ffm.getFunctionDesciptorVoid(JAVA_LONG));

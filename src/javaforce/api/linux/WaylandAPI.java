@@ -29,7 +29,7 @@ public interface WaylandAPI {
   public long wlr_backend_autocreate(long event_loop, long session_ptr);
   public void wlr_backend_start(long backend);
   public long wlr_renderer_autocreate(long backend);
-  public long wlr_compositor_create(long display, long renderer);
+  public long wlr_compositor_create(long display, int version, long renderer);
   public long wlr_xwayland_create(long display, long compositor, boolean lazy);
 
   public void wlr_xwayland_destroy(long xwayland);
