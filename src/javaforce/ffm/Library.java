@@ -72,7 +72,7 @@ public class Library {
       if (JF.isUnix()) {
         libs[i].name = "lib" + libs[i].name;
       }
-      libs[i].match = libs[i].name.toLowerCase() + "[-]*" + "([.][0-9]*)*" + ext + "([.][0-9]*)*";
+      libs[i].match = libs[i].name.toLowerCase() + "([-][0-9]*)*" + "([.][0-9]*)*" + ext + "([.][0-9]*)*";
     }
     if (folders == null) {
       folders = getSysFolders();
