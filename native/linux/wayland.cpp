@@ -55,11 +55,13 @@ void* wl_roots = NULL;
 extern "C" {
   JNIEXPORT void* _wl_display_create;
   JNIEXPORT void* _wl_event_loop_create;
+  JNIEXPORT void* _wl_display_get_event_loop;
   JNIEXPORT void* _wl_display_add_socket_auto;
   JNIEXPORT void* _wl_display_run;
   JNIEXPORT void* _wl_display_destroy;
 
   JNIEXPORT void* _wlr_session_create;
+  JNIEXPORT void* _wlr_fixes_create;
   JNIEXPORT void* _wlr_backend_autocreate;
   JNIEXPORT void* _wlr_backend_start;
   JNIEXPORT void* _wlr_renderer_autocreate;
@@ -76,6 +78,7 @@ extern "C" {
       } else {
         getFunction(wl_server, (void**)&_wl_display_create, "wl_display_create");
         getFunction(wl_server, (void**)&_wl_event_loop_create, "wl_event_loop_create");
+        getFunction(wl_server, (void**)&_wl_display_get_event_loop, "wl_display_get_event_loop");
         getFunction(wl_server, (void**)&_wl_display_add_socket_auto, "wl_display_add_socket_auto");
         getFunction(wl_server, (void**)&_wl_display_run, "wl_display_run");
         getFunction(wl_server, (void**)&_wl_display_destroy, "wl_display_destroy");
@@ -96,6 +99,7 @@ extern "C" {
         printf("Warning:dlopen(wlroots.so) unsuccessful\n");
       } else {
         getFunction(wl_roots, (void**)&_wlr_session_create, "wlr_session_create");
+        getFunction(wl_roots, (void**)&_wlr_fixes_create, "wlr_fixes_create");
         getFunction(wl_roots, (void**)&_wlr_backend_autocreate, "wlr_backend_autocreate");
         getFunction(wl_roots, (void**)&_wlr_backend_start, "wlr_backend_start");
         getFunction(wl_roots, (void**)&_wlr_renderer_autocreate, "wlr_renderer_autocreate");

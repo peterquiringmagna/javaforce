@@ -24,12 +24,13 @@ public class Wayland {
       JFLog.log("Wayland:wl_display_create() failed!");
       return false;
     }
-    long event_loop = api.wl_event_loop_create();
+    long event_loop = api.wl_display_get_event_loop(display);
     if (debug) JFLog.log("event_loop=" + event_loop);
     if (event_loop == 0) {
       JFLog.log("Wayland:wl_event_loop_create() failed!");
       return false;
     }
+    api.wlr_fixes_create(display, 1);
     LinuxAPI.getInstance().setEnv("LIBSEAT_BACKEND", "logind");
     long session = 0;
     MemorySegment session_ptr = arena.allocateFrom(JAVA_LONG, session);

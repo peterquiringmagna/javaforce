@@ -18,6 +18,7 @@ public interface WaylandAPI {
 
   public long wl_display_create();
   public long wl_event_loop_create();
+  public long wl_display_get_event_loop(long display);
   public String wl_display_add_socket_auto(long display);
   public void wl_display_run(long display);
 
@@ -26,6 +27,7 @@ public interface WaylandAPI {
   //wlroots
 
   public long wlr_session_create(long display);
+  public long wlr_fixes_create(long display, int value);
   public long wlr_backend_autocreate(long event_loop, long session_ptr);
   public void wlr_backend_start(long backend);
   public long wlr_renderer_autocreate(long backend);
