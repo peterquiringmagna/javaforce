@@ -36,7 +36,7 @@ public class Wayland {
       api.wlr_fixes_create(display, 1);
     }
     //setup signals
-    MemorySegment handle_signal = FFM.getFunctionUpCall(this, "handle_signal", long.class, new Class[] {int.class, long.class}, arena);
+    MemorySegment handle_signal = FFM.getFunctionUpCall(this, "handle_signal", int.class, new Class[] {int.class, long.class}, arena);
     api.wl_event_loop_add_signal(event_loop, SIGHUP, handle_signal.address(), display);
     api.wl_event_loop_add_signal(event_loop, SIGINT, handle_signal.address(), display);
     api.wl_event_loop_add_signal(event_loop, SIGTERM, handle_signal.address(), display);
