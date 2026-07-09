@@ -55,6 +55,7 @@ void* wl_roots = NULL;
 extern "C" {
   JNIEXPORT void* _wl_display_create;
   JNIEXPORT void* _wl_event_loop_create;
+  JNIEXPORT void* _wl_event_loop_add_signal;
   JNIEXPORT void* _wl_display_get_event_loop;
   JNIEXPORT void* _wl_display_add_socket_auto;
   JNIEXPORT void* _wl_display_run;
@@ -78,6 +79,7 @@ extern "C" {
       } else {
         getFunction(wl_server, (void**)&_wl_display_create, "wl_display_create");
         getFunction(wl_server, (void**)&_wl_event_loop_create, "wl_event_loop_create");
+        getFunction(wl_server, (void**)&_wl_event_loop_add_signal, "wl_event_loop_add_signal");
         getFunction(wl_server, (void**)&_wl_display_get_event_loop, "wl_display_get_event_loop");
         getFunction(wl_server, (void**)&_wl_display_add_socket_auto, "wl_display_add_socket_auto");
         getFunction(wl_server, (void**)&_wl_display_run, "wl_display_run");

@@ -25,6 +25,24 @@ import javaforce.ffm.*;
 
 public class Linux implements X11Listener {
 
+  public static int SIGHUP = 1;
+  public static int SIGINT = 2;
+  public static int SIGQUIT = 3;
+  public static int SIGILL = 4;
+  public static int SIGTRAP = 5;
+  public static int SIGABRT = 6;
+  public static int SIGBUS = 7;
+  public static int SIGFPE = 8;
+  public static int SIGKILL = 9;
+  public static int SIGUSR1 = 10;
+  public static int SIGSEGV = 11;
+  public static int SIGUSR2 = 12;
+  public static int SIGPIPE = 13;
+  public static int SIGARLM = 14;
+  public static int SIGTERM = 15;
+  public static int SIGSTKFLT = 16;
+  public static int SIGCHLD = 17;
+
   /** Returns Linux version as float. */
   public static String getVersion() {
     return getOSRelease("VERSION_ID");
@@ -1352,9 +1370,6 @@ public class Linux implements X11Listener {
     }
     return LinuxAPI.getInstance().authUser(user, pass, backend);
   }
-
-  public static final int SIGKILL = 9;
-  public static final int SIGTERM = 15;
 
   public static void kill(int pid, int signal) {
     try {

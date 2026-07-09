@@ -5,6 +5,8 @@ import static java.lang.foreign.ValueLayout.*;
 
 import javaforce.*;
 import javaforce.api.linux.*;
+import javaforce.ffm.FFM;
+import static javaforce.linux.Linux.*;
 
 /** Wayland Compositor.
  *
@@ -33,6 +35,12 @@ public class Wayland {
     if (false) {
       api.wlr_fixes_create(display, 1);
     }
+    //setup signals
+    MemorySegment handle_signal = FFM.getFunctionUpCall(this, "handle_signal", long.class, new Class[] {int.class, long.class}, arena);
+    api.wl_event_loop_add_signal(event_loop, SIGHUP, handle_signal.address(), display);
+    api.wl_event_loop_add_signal(event_loop, SIGINT, handle_signal.address(), display);
+    api.wl_event_loop_add_signal(event_loop, SIGTERM, handle_signal.address(), display);
+    api.wl_event_loop_add_signal(event_loop, SIGCHLD, handle_signal.address(), display);
     LinuxAPI.getInstance().setEnv("LIBSEAT_BACKEND", "logind");
     long session = 0;
     MemorySegment session_ptr = arena.allocateFrom(JAVA_LONG, session);
@@ -71,6 +79,9 @@ public class Wayland {
     api.wlr_backend_destroy(backend);
     api.wl_display_destroy(display);
     return true;
+  }
+  public int handle_signal(int sig, long data) {
+    return 0;
   }
   public void stop() {
     //TODO
