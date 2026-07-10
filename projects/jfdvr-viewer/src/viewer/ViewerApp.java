@@ -193,7 +193,10 @@ public class ViewerApp extends javax.swing.JFrame {
       "F4 = View Logs\n" +
       "F5 = Refresh\n" +
       "F10 = Toggle Maximized\n" +
-      "F11 = Toggle Full Screen\n"
+      "F11 = Toggle Full Screen\n" +
+      "\n" +
+      "Note : Camera seeking is only available when viewing\n" +
+      "a single camera (not in a group)\n"
     );
   }
 
