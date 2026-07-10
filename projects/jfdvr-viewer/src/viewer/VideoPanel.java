@@ -309,12 +309,6 @@ public class VideoPanel extends javax.swing.JPanel {
   public static boolean debug_ts = false;
 
   private synchronized void init() {
-    solo = false;
-    grid = false;
-    cancelTimer();
-    if (container.isVisible()) {
-      container.setVisible(false);
-    }
     if (video != null) return;
     int x = getWidth();
     int y = getHeight();

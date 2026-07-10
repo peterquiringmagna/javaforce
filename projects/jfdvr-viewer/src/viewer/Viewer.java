@@ -59,7 +59,7 @@ public class Viewer {
     }
     videoPanel.start();
     videoPanel.setURL(url.toString(), url.getPath());
-    networkReader = new NetworkReader(url);
+    networkReader = new NetworkReader(url, true);
     networkReader.start();
   }
 
@@ -115,7 +115,7 @@ public class Viewer {
     private float fps = -1;
     private Thread playThread;
 
-    public NetworkReader(URL url) {
+    public NetworkReader(URL url, boolean solo) {
       //rtsp://host/type/name
       this.url = url;
       String path = url.getPath().substring(1);
@@ -127,8 +127,9 @@ public class Viewer {
         JFLog.append(log, JF.getUserPath() + "/jfdvr-" + type + "-" + name + ".log", true);
         JFLog.setRetention(log, 7);
       }
+      this.solo = solo;
     }
-    public void setGrid(int gx, int gy) {
+    public void setGridPos(int gx, int gy) {
       grid = true;
       this.gx = gx;
       this.gy = gy;
@@ -401,8 +402,7 @@ public class Viewer {
     private void start_camera() {
       try {
         rtsp.options(url.toString());
-        if (!grid) {
-          solo = true;
+        if (solo) {
           videoPanel.setCamera();
         }
       } catch (Exception e) {
@@ -415,7 +415,6 @@ public class Viewer {
         JFLog.log(log, "start_group:" + cams);
         cameras = cams.split(",");
         int count = cameras.length;
-        grid = true;
         grid_x = 2;
         grid_y = 2;
         grid_xy = grid_x * grid_y;
@@ -428,6 +427,7 @@ public class Viewer {
           grid_xy = grid_x * grid_y;
         }
         videoPanel.setGrid(grid_x, grid_y);
+        grid = true;
         //start cameras
         networkReaders = new NetworkReader[count];
         int px = 0;
@@ -435,8 +435,8 @@ public class Viewer {
         for(int a=0;a<count;a++) {
           URL camurl = Config.newURL("/camera/" + cameras[a]);
           if (camurl == null) continue;
-          NetworkReader nr = new NetworkReader(camurl);
-          nr.setGrid(px, py);
+          NetworkReader nr = new NetworkReader(camurl, false);
+          nr.setGridPos(px, py);
           nr.start();
           networkReaders[a] = nr;
           px++;
