@@ -1,5 +1,10 @@
 What's new...
 
+Jul 10/2026 : JF/114.0
+  - fix : WinPipes
+  - jfDVR/0.45
+    - fix Viewer grid issues
+
 Jul 7/2026 : JF/113.0
   - major native change : removed all JNI (except for 4 methods in JFHeap)
   - FFM : most classes auto init on first usage

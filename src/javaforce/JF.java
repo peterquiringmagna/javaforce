@@ -28,12 +28,12 @@ public class JF {
 
   /** Returns JavaForce version as a String. */
   public static String getVersion() {
-    return "113.0";
+    return "114.0";
   }
 
   /** Returns JavaForce min native version as a String. */
   public static String getMinNativeVersion() {
-    return "113.0";
+    return "114.0";
   }
 
   /** Console app that displays JavaForce version. */
