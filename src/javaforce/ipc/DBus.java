@@ -28,9 +28,11 @@ import javaforce.ipc.transport.*;
  *  - double[]
  *  - boolean[]
  *  - String[]
- *  - javaforce.UShort (not recommended) (primitive type is 'short')
- *  - javaforce.UInteger (not recommended) (primitive type is 'int')
- *  - javaforce.ULong (not recommended) (primitive type is 'long')
+ *  - javaforce.UShort (invoke only) (primitive type is 'short')
+ *  - javaforce.UInteger (invoke only) (primitive type is 'int')
+ *  - javaforce.ULong (invoke only) (primitive type is 'long')
+ *  - array of dictionary entries (return only) (returns HashMap&lt;String,Object&gt;)
+ *  - variant (return only)
  *
  * Notes:
  *  - sender field required to send back RPC reply
@@ -50,6 +52,7 @@ import javaforce.ipc.transport.*;
  *      since Java does not have primitive unsigned data types
  *      they are provided only for outbound calls to native methods that use them
  *      such as org.freedesktop.DBus.RequestName(String, uint32)
+ *  - dictionary and variant types are only supported in return data from an invoke()
  *
  * @author pquiring
  */
@@ -151,6 +154,8 @@ public class DBus implements IPC {
   public static final String TYPE_ARRAY_DOUBLE = "ad";
   public static final String TYPE_ARRAY_BOOLEAN = "ab";
   public static final String TYPE_ARRAY_STRING = "as";
+  public static final String TYPE_ARRAY_DICT = "ae";
+  public static final String TYPE_ARRAY_STRUCT = "ar";
 
   /** Returns DBus data type of obj. */
   public static String getDataType(Object obj) {
@@ -1312,17 +1317,14 @@ public class DBus implements IPC {
       char[] types = sign.toCharArray();
       ArrayList<Object> args = new ArrayList<>();
       String str;
-      boolean isArray = false;
-      for(char type : types) {
-        if (isArray) {
-          isArray = false;
-          str = String.format("%s%c", TYPE_ARRAY, type);
-        } else {
-          str = Character.toString(type);
-          if (str.equals(TYPE_ARRAY)) {
-            isArray = true;
-            continue;
-          }
+      int idx = 0;
+      String dict_key = null;
+      String dict_value = null;
+      while (idx < types.length) {
+        char type = types[idx++];
+        str = Character.toString(type);
+        if (str.equals(TYPE_ARRAY)) {
+          str += types[idx++];
         }
         Object arg;
         switch (str) {
@@ -1353,6 +1355,7 @@ public class DBus implements IPC {
             arg = (read_int() == 1);
             break;
           }
+          case TYPE_OBJECT_PATH:
           case TYPE_STRING: {
             arg = read_String();
             break;
@@ -1383,6 +1386,22 @@ public class DBus implements IPC {
           }
           case TYPE_ARRAY_STRING: {
             arg = read_array_String();
+            break;
+          }
+          case TYPE_ARRAY_DICT: {
+            if (types[idx++] != TYPE_DICT_OPEN.charAt(0)) throw new Exception("DBus:expected DICT OPEN");
+            dict_key = Character.toString(types[idx++]);
+            dict_value = Character.toString(types[idx++]);
+            if (types[idx++] != TYPE_DICT_CLOSE.charAt(0)) throw new Exception("DBus:expected DICT CLOSE");
+            arg = read_array_dict(dict_key, dict_value);
+            break;
+          }
+          case TYPE_STRUCT: {
+            throw new Exception("DBus:STRUCT not supported yet!");
+          }
+          case TYPE_VARIANT: {
+            String vartype = read_type();
+            arg = read_args(vartype)[0];
             break;
           }
           default: {
@@ -1544,6 +1563,59 @@ public class DBus implements IPC {
       rpos += strlen;
       rpos++;  //null
       return str;
+    }
+    private HashMap<String, Object> read_array_dict(String K, String V) throws Exception {
+      HashMap<String, Object> map = new HashMap<>();
+      int len = read_int();
+      for(int idx=0;idx<len;idx++) {
+        //K = String
+        String key = (String)read_args(K)[0];
+        //V = Variant
+        Object value = read_args(V)[0];
+        map.put(key, value);
+      }
+      return map;
+    }
+    private String read_type() throws Exception {
+      //read one complete type
+      StringBuilder type = new StringBuilder();
+      boolean dict = false;
+      boolean struct = false;
+      do {
+        char t = (char)read_byte();
+        type.append(t);
+        switch (Character.toString(t)) {
+          case TYPE_ARRAY: {
+            continue;
+          }
+          case TYPE_DICT: {
+            if (dict) throw new Exception("DBus:unexpected DICT within DICT");
+            char open = (char)read_byte();
+            if (!Character.toString(open).equals(TYPE_DICT_OPEN)) throw new Exception("DBus:expected DICT OPEN");
+            dict = true;
+            continue;
+          }
+          case TYPE_DICT_CLOSE: {
+            if (!dict) throw new Exception("DBus:unexpected DICT CLOSE");
+            dict = false;
+            break;
+          }
+          case TYPE_STRUCT: {
+            if (struct) throw new Exception("DBus:unexpected STRUCT within STRUCT");
+            char open = (char)read_byte();
+            if (!Character.toString(open).equals(TYPE_STRUCT_OPEN)) throw new Exception("DBus:expected STRUCT OPEN");
+            struct = true;
+            continue;
+          }
+          case TYPE_STRUCT_CLOSE: {
+            if (!struct) throw new Exception("DBus:unexpected STRUCT CLOSE");
+            struct = false;
+            break;
+          }
+        }
+        if (!dict && !struct) break;
+      } while (true);
+      return type.toString();
     }
 /*
     private void read_struct_open() throws Exception {
