@@ -32,8 +32,11 @@ import javaforce.ipc.transport.*;
  *  - javaforce.UInteger (invoke only) (primitive type is 'int')
  *  - javaforce.ULong (invoke only) (primitive type is 'long')
  *  - dictionary entries (return only) (returns JFTuple&lt;String,Object&gt;)
+ *  - struct (return only) (returns Object[])
+ *  - variant (return only) (returns Object)
  *  - array of dictionary entries (return only) (returns HashMap&lt;String,Object&gt;)
- *  - variant (return only)
+ *  - array of struct (return only) (returns Object[][])
+ *  - array of variant (return only) (returns Object[])
  *
  * Notes:
  *  - sender field required to send back RPC reply
@@ -53,7 +56,7 @@ import javaforce.ipc.transport.*;
  *      since Java does not have primitive unsigned data types
  *      they are provided only for outbound calls to native methods that use them
  *      such as org.freedesktop.DBus.RequestName(String, uint32)
- *  - dictionary and variant types are only supported in return data from an invoke()
+ *  - dictionary, struct and variant types are only supported in return data from an invoke()
  *
  * @author pquiring
  */
@@ -157,6 +160,7 @@ public class DBus implements IPC {
   public static final String TYPE_ARRAY_STRING = "as";
   public static final String TYPE_ARRAY_DICT = "ae";
   public static final String TYPE_ARRAY_STRUCT = "ar";
+  public static final String TYPE_ARRAY_VARIANT = "av";
 
   /** Returns DBus data type of obj. */
   public static String getDataType(Object obj) {
@@ -1085,7 +1089,6 @@ public class DBus implements IPC {
             Field field = new Field();
             fields.add(field);
             ralign(8);  //each field is a struct that is aligned to 8 bytes
-//            read_struct_open();
             //read field type
             field.type = read_byte();
             //read variant {sign + value}
@@ -1123,7 +1126,6 @@ public class DBus implements IPC {
               default:
                 throw new Exception("bad field:" + field.type);
             }
-//            read_struct_close();
             if (debug) {
               JFLog.log("read.field:" + field);
             }
@@ -1383,6 +1385,31 @@ public class DBus implements IPC {
             arg = read_dict(dict_key, dict_value);
             break;
           }
+          case TYPE_VARIANT: {
+            arg = read_variant();
+            break;
+          }
+          case TYPE_STRUCT: {
+            StringBuilder struct_type = new StringBuilder();
+            int depth = 1;
+            char _type = types[idx++];
+            if (_type != TYPE_STRUCT_OPEN.charAt(0)) throw new Exception("DBus:expected STRUCT OPEN");
+            struct_type.append(_type);
+            do {
+              _type = types[idx++];
+              struct_type.append(_type);
+              switch (Character.toString(_type)) {
+                case TYPE_STRUCT_OPEN:
+                  depth++;
+                  break;
+                case TYPE_STRUCT_CLOSE:
+                  depth--;
+                  break;
+              }
+            } while (depth > 0);
+            arg = read_struct(struct_type.toString());
+            break;
+          }
           case TYPE_ARRAY_UINT8: {
             arg = read_array_byte();
             break;
@@ -1419,12 +1446,29 @@ public class DBus implements IPC {
             arg = read_array_dict(dict_key, dict_value);
             break;
           }
-          case TYPE_STRUCT: {
-            throw new Exception("DBus:STRUCT not supported yet!");
+          case TYPE_ARRAY_STRUCT: {
+            StringBuilder struct_type = new StringBuilder();
+            int depth = 1;
+            char _type = types[idx++];
+            if (_type != TYPE_STRUCT_OPEN.charAt(0)) throw new Exception("DBus:expected STRUCT OPEN");
+            struct_type.append(_type);
+            do {
+              _type = types[idx++];
+              struct_type.append(_type);
+              switch (Character.toString(_type)) {
+                case TYPE_STRUCT_OPEN:
+                  depth++;
+                  break;
+                case TYPE_STRUCT_CLOSE:
+                  depth--;
+                  break;
+              }
+            } while (depth > 0);
+            arg = read_array_struct(struct_type.toString());
+            break;
           }
-          case TYPE_VARIANT: {
-            String vartype = read_type();
-            arg = read_args(vartype)[0];
+          case TYPE_ARRAY_VARIANT: {
+            arg = read_array_variant();
             break;
           }
           default: {
@@ -1518,6 +1562,15 @@ public class DBus implements IPC {
       pair.value = value;
       return pair;
     }
+    private Object[] read_struct(String types) throws Exception {
+      if (!types.startsWith(TYPE_STRUCT_OPEN)) throw new Exception("DBus:expected STRUCT OPEN");
+      if (!types.endsWith(TYPE_STRUCT_CLOSE)) throw new Exception("DBus:expected STRUCT CLOSE");
+      return read_args(types.substring(1, types.length() - 1));
+    }
+    private Object read_variant() throws Exception {
+      String vartype = read_type();
+      return read_args(vartype)[0];
+    }
     private byte[] read_array_byte() throws Exception {
       int len = read_int();
       rcheck(len);
@@ -1609,6 +1662,22 @@ public class DBus implements IPC {
       }
       return map;
     }
+    private Object[] read_array_struct(String types) throws Exception {
+      int cnt = read_int();
+      Object[] vars = new Object[cnt];
+      for(int i=0;i<cnt;i++) {
+        vars[i] = read_struct(types);
+      }
+      return vars;
+    }
+    private Object[] read_array_variant() throws Exception {
+      int cnt = read_int();
+      Object[] vars = new Object[cnt];
+      for(int i=0;i<cnt;i++) {
+        vars[i] = read_variant();
+      }
+      return vars;
+    }
     private String read_type() throws Exception {
       //read one complete type
       StringBuilder type = new StringBuilder();
@@ -1650,17 +1719,5 @@ public class DBus implements IPC {
       } while (true);
       return type.toString();
     }
-/*
-    private void read_struct_open() throws Exception {
-      if (rpkt[rpos++] != TYPE_STRUCT_OPEN) {
-        throw new Exception("DBus:Error:expecting struct open '('");
-      }
-    }
-    private void read_struct_close() throws Exception {
-      if (rpkt[rpos++] != TYPE_STRUCT_CLOSE) {
-        throw new Exception("DBus:Error:expecting struct close ')'");
-      }
-    }
-*/
   }
 }
