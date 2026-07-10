@@ -95,5 +95,5 @@ extern "C" {
   JNIEXPORT jint (*_pipeRead)(HANDLE handle, jbyte* ba, jint offset, jint length) = &pipeRead;
   JNIEXPORT jint (*_pipeWrite)(const char* name, jbyte* ba, jint offset, jint length) = &pipeWrite;
 
-  JNIEXPORT jboolean JNICALL WinPipeAPIinit() {return JNI_TRUE;}
+  JNIEXPORT jboolean JNICALL PipesAPIinit() {return JNI_TRUE;}
 }
