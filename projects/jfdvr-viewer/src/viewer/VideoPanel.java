@@ -321,10 +321,14 @@ public class VideoPanel extends javax.swing.JPanel {
     if (grid || container.isVisible()) return;
     java.awt.EventQueue.invokeLater(new Runnable() {
       public void run() {
-        if (debug) JFLog.log("show controls");
-        container.setVisible(true);
-        revalidate();
-        repaint();
+        try {
+          if (debug) JFLog.log("show controls");
+          container.setVisible(true);
+          revalidate();
+          repaint();
+        } catch (Exception e) {
+          JFLog.log(e);
+        }
       }
     });
   }
@@ -339,9 +343,13 @@ public class VideoPanel extends javax.swing.JPanel {
         if (cnt == 5) {
           java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-              if (debug) JFLog.log("hide controls");
-              container.setVisible(false);
-              repaint();
+              try {
+                if (debug) JFLog.log("hide controls");
+                container.setVisible(false);
+                repaint();
+              } catch (Exception e) {
+                JFLog.log(e);
+              }
             }
           });
         }
