@@ -196,7 +196,21 @@ public class DBus implements IPC {
     }
   }
 
-  private static final String DBusMessageBus = "org.freedesktop.DBus";
+  public static final String DBUS_MESSAGE_BUS = "org.freedesktop.DBus";
+  public static final String DBUS_PEER = "org.freedesktop.DBus.Peer";
+    //Ping()
+    //GetMachineId()
+  public static final String DBUS_PROPERTIES = "org.freedesktop.DBus.Properties";
+    //Get()
+    //Set()
+    //GetAll()
+  public static final String DBUS_INTROSPECTABLE = "org.freedesktop.DBus.Introspectable";
+    //Introspect()
+  public static final String DBUS_OBJECT_MANAGER = "org.freedesktop.DBus.ObjectManager";
+    //GetManagedObjects()
+    //InterfacesAdded()
+    //InterfacesRemoved()
+
   private static int tcp_port = -1;
 
   private EndPoint ep;
@@ -399,7 +413,7 @@ public class DBus implements IPC {
     if (debug) JFLog.log("DBus.invoke:" + dest + "." + method);
     Invoke invoke = new Invoke();
     invoke.serial = nextSerial();
-    if (dest.equals(DBusMessageBus)) {
+    if (dest.equals(DBUS_MESSAGE_BUS)) {
       if (method.equals("RequestName")) {
         invoke.return_signal = "NameAcquired";
       }
@@ -795,7 +809,7 @@ public class DBus implements IPC {
     if (args == null) args = empty;
     if (debug_msg) JFLog.log("DBus.invoke:" + dest + ":" + member + ":" + serial + ":" + serial_reply);
     synchronized (write_msg_lock) {
-      boolean write_to_dbus = dest.equals(DBusMessageBus);
+      boolean write_to_dbus = dest.equals(DBUS_MESSAGE_BUS);
       int body_size = args_length(args);
       String sign = args_sign(args);
       wpos = 0;
