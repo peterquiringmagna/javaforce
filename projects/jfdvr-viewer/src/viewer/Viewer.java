@@ -400,6 +400,7 @@ public class Viewer {
     private void start_camera() {
       try {
         rtsp.options(url.toString());
+        videoPanel.setCamera();
       } catch (Exception e) {
         JFLog.log(log, e);
       }

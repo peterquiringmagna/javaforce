@@ -284,6 +284,7 @@ public class VideoPanel extends javax.swing.JPanel {
   private JFImage timeline_sec;
   private boolean needPainting = false;
   private boolean grid;
+  private boolean solo;
   private int gx, gy;
   private boolean zoom;
   private int zx, zy;
@@ -308,6 +309,12 @@ public class VideoPanel extends javax.swing.JPanel {
   public static boolean debug_ts = false;
 
   private synchronized void init() {
+    solo = false;
+    grid = false;
+    cancelTimer();
+    if (container.isVisible()) {
+      container.setVisible(false);
+    }
     if (video != null) return;
     int x = getWidth();
     int y = getHeight();
@@ -318,7 +325,7 @@ public class VideoPanel extends javax.swing.JPanel {
 
   private void wake() {
     cnt = 0;
-    if (grid || container.isVisible()) return;
+    if (grid || !solo || container.isVisible()) return;
     java.awt.EventQueue.invokeLater(new Runnable() {
       public void run() {
         try {
@@ -395,7 +402,6 @@ public class VideoPanel extends javax.swing.JPanel {
 
   public void start() {
     init();
-    createTimer();
   }
 
   public void stop() {
@@ -482,11 +488,18 @@ public class VideoPanel extends javax.swing.JPanel {
     needPainting = false;
   }
 
+  public void setCamera() {
+    solo = true;
+    grid = false;
+    createTimer();
+  }
+
   public void setGrid(int gx, int gy) {
     if (debug) JFLog.log("setGrid:" + gx + "," + gy);
+    solo = false;
+    grid = true;
     cancelTimer();
     container.setVisible(false);
-    grid = true;
     this.gx = gx;
     this.gy = gy;
   }
