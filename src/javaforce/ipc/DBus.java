@@ -31,6 +31,7 @@ import javaforce.ipc.transport.*;
  *  - javaforce.UShort (invoke only) (primitive type is 'short')
  *  - javaforce.UInteger (invoke only) (primitive type is 'int')
  *  - javaforce.ULong (invoke only) (primitive type is 'long')
+ *  - dictionary entries (return only) (returns JFTuple&lt;String,Object&gt;)
  *  - array of dictionary entries (return only) (returns HashMap&lt;String,Object&gt;)
  *  - variant (return only)
  *
@@ -1374,6 +1375,14 @@ public class DBus implements IPC {
             arg = read_String();
             break;
           }
+          case TYPE_DICT: {
+            if (types[idx++] != TYPE_DICT_OPEN.charAt(0)) throw new Exception("DBus:expected DICT OPEN");
+            dict_key = Character.toString(types[idx++]);
+            dict_value = Character.toString(types[idx++]);
+            if (types[idx++] != TYPE_DICT_CLOSE.charAt(0)) throw new Exception("DBus:expected DICT CLOSE");
+            arg = read_dict(dict_key, dict_value);
+            break;
+          }
           case TYPE_ARRAY_UINT8: {
             arg = read_array_byte();
             break;
@@ -1498,6 +1507,16 @@ public class DBus implements IPC {
       rpos += strlen;
       rpos++;  //null
       return str;
+    }
+    private JFTuple<String,Object> read_dict(String K, String V) throws Exception {
+      JFTuple<String,Object> pair = new JFTuple<>();
+      //K = String
+      String key = (String)read_args(K)[0];
+      //V = Variant
+      Object value = read_args(V)[0];
+      pair.key = key;
+      pair.value = value;
+      return pair;
     }
     private byte[] read_array_byte() throws Exception {
       int len = read_int();
