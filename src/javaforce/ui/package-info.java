@@ -1,5 +1,5 @@
 /**
- * This package includes a UI framework to replace AWT.
+ * This package includes a UI framework to replace AWT (WIP).
  * The GLFW project is used to create Windows and process events.
  *
  * The reason for this package was because Oracle planned to not support many
