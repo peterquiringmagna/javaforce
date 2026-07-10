@@ -318,7 +318,7 @@ public class VideoPanel extends javax.swing.JPanel {
 
   private void wake() {
     cnt = 0;
-    if (grid || container.isVisible()) return;
+    if ((grid && !zoom) || container.isVisible()) return;
     java.awt.EventQueue.invokeLater(new Runnable() {
       public void run() {
         try {
