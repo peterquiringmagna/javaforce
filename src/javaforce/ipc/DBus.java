@@ -381,14 +381,16 @@ public class DBus implements IPC {
   private ArrayList<Invoke> invokes = new ArrayList<>();
 
   /** Invokes method in remote end point.
-   * @param dest = destination end point
+   * @param dest = dot destination end point on bus
+   * @param path = slash path within service
+   * @param iface = dot interface name (optional if unique)
    * @param method = method to invoke
    * @param args = arguments
    * @return return value from remote method
    * @exception Exception thrown if method returned at error message or no reply within timeout duration
    *   Errors could be method not found, mismatch arguments, etc.
    */
-  public Object invoke(String dest, String method, Object... args) throws Exception {
+  public Object invoke(String dest, String path, String iface, String method, Object... args) throws Exception {
     if (debug) JFLog.log("DBus.invoke:" + dest + "." + method);
     Invoke invoke = new Invoke();
     invoke.serial = nextSerial();
@@ -399,7 +401,7 @@ public class DBus implements IPC {
     }
     synchronized (invoke.lock) {
       synchronized (invokes_lock) {
-        write_msg(MSG_CALL, dest, invoke.serial, -1, method, args);
+        write_msg(MSG_CALL, dest, path, iface, invoke.serial, -1, method, args);
         invokes.add(invoke);
       }
       try {
@@ -419,6 +421,22 @@ public class DBus implements IPC {
       }
       return invoke.value;
     }
+  }
+
+  /** Invokes method in remote end point.
+   * @param dest = dot destination end point on bus
+   * @param method = method to invoke
+   * @param args = arguments
+   * @return return value from remote method
+   * @exception Exception thrown if method returned at error message or no reply within timeout duration
+   *   Errors could be method not found, mismatch arguments, etc.
+   * Path and iface are inferred from dest.
+   */
+  public Object invoke(String dest, String method, Object... args) throws Exception {
+    boolean dest_generic = dest.startsWith(":");
+    String iface = dest_generic ? "javaforce.endpoint" : dest;
+    String path = nameToPath(iface);
+    return invoke(dest, path, iface, method, args);
   }
 
   private static class Signal {
@@ -768,14 +786,11 @@ public class DBus implements IPC {
 
   private static final Object[] empty = new Object[0];
 
-  private void write_msg(byte msg_type, String dest, int serial, int serial_reply, String member, Object[] args) {
+  private void write_msg(byte msg_type, String dest, String path, String iface, int serial, int serial_reply, String member, Object[] args) {
     if (args == null) args = empty;
     if (debug_msg) JFLog.log("DBus.invoke:" + dest + ":" + member + ":" + serial + ":" + serial_reply);
     synchronized (write_msg_lock) {
       boolean write_to_dbus = dest.equals(DBusMessageBus);
-      boolean dest_generic = dest.startsWith(":");
-      String iface = dest_generic ? "javaforce.endpoint" : dest;
-      String path = nameToPath(iface);
       int body_size = args_length(args);
       String sign = args_sign(args);
       wpos = 0;
@@ -933,6 +948,13 @@ public class DBus implements IPC {
         JFLog.log(e);
       }
     }
+  }
+
+  private void write_msg(byte msg_type, String dest, int serial, int serial_reply, String member, Object[] args) {
+    boolean dest_generic = dest.startsWith(":");
+    String iface = dest_generic ? "javaforce.endpoint" : dest;
+    String path = nameToPath(iface);
+    write_msg(msg_type, dest, path, iface, serial, serial_reply, member, args);
   }
 
   private class Reader extends Thread {
