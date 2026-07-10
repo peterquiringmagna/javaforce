@@ -100,6 +100,7 @@ public class Viewer {
     private long lastKeepAlive;
     private int decoded_frame[];
     private int log = 0;
+    private boolean solo;
     private boolean grid;
     private int gx, gy;
     private AudioBuffer audio_buffer;
@@ -400,7 +401,10 @@ public class Viewer {
     private void start_camera() {
       try {
         rtsp.options(url.toString());
-        videoPanel.setCamera();
+        if (!grid) {
+          solo = true;
+          videoPanel.setCamera();
+        }
       } catch (Exception e) {
         JFLog.log(log, e);
       }
