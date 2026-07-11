@@ -33,14 +33,14 @@
 
   <target name="get-freerdp-bin" description="download exes for Win64">
     <echo message="Downloading: wfreerdp"/>
-    <get src="https://ci.freerdp.com/job/freerdp-nightly-windows/arch=win64,label=vs2017/lastSuccessfulBuild/artifact/install/bin/wfreerdp.exe" dest="wfreerdp.exe"/>
-    <echo message="Downloading: sdl3-freerdp"/>
-    <get src="https://ci.freerdp.com/job/freerdp-nightly-windows/arch=win64,label=vs2017/lastSuccessfulBuild/artifact/install/bin/sdl3-freerdp.exe" dest="sdl-freerdp.exe"/>
-    <echo message="Copying: jfvnc"/>
+    <get src="https://javaforce.sf.net/freerdp/wfreerdp.exe" dest="wfreerdp.exe"/>
+    <echo message="Downloading: sdl-freerdp"/>
+    <get src="https://javaforce.sf.net/freerdp/sdl-freerdp.exe" dest="sdl-freerdp.exe"/>
   </target>
 
   <target name="get-jfvnc-bin" description="copy jfvnc exe for win64">
-    <copy file="../jfvnc/jfvnc.exe" todir="."/>
+    <echo message="Copying: jfvnc"/>
+    <copy file="../jfvnc-viewer/jfvnc.exe" todir="."/>
   </target>
 
   <!-- sudo ant install -->
