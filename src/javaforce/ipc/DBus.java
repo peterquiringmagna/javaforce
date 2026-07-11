@@ -268,7 +268,7 @@ public class DBus implements IPC {
       case TYPE_ARRAY_VARIANT:
         return JFVariant[].class;
       case TYPE_ARRAY_DICT:
-        return JFDictionary[].class;
+        return JFDictionary.class;
       case TYPE_ARRAY_STRUCT:
         return JFArray[].class;
     }
@@ -751,11 +751,11 @@ public class DBus implements IPC {
         }
         break;
       case TYPE_ARRAY_DICT:
-        JFDictionary<String, Object> dict = (JFDictionary)arg;
-        String[] keys = dict.map.keySet().toArray(new String[0]);
+        JFDictionary dict = (JFDictionary)arg;
+        Object[] keys = dict.map.keySet().toArray(new String[0]);
         balign(4);
         bodyLength += 4;  //length
-        for(String key : keys) {
+        for(Object key : keys) {
           add_length(key);
           add_length(dict.map.get(key));
         }
@@ -1138,7 +1138,7 @@ public class DBus implements IPC {
         write_array_String(as);
         break;
       case TYPE_ARRAY_DICT:
-        write_array_dict((JFDictionary<String,Object>)obj);
+        write_array_dict((JFDictionary)obj);
         break;
       case TYPE_ARRAY_STRUCT:
         write_array_struct((JFArray[])obj);
@@ -1632,7 +1632,16 @@ public class DBus implements IPC {
         char type = types[idx++];
         str = Character.toString(type);
         if (str.equals(TYPE_ARRAY)) {
-          str += types[idx++];
+          char array_type = types[idx++];
+          switch (Character.toString(array_type)) {
+            case TYPE_DICT_OPEN:
+              array_type = TYPE_DICT.charAt(0);
+              break;
+            case TYPE_STRUCT_OPEN:
+              array_type = TYPE_STRUCT.charAt(0);
+              break;
+          }
+          str += array_type;
         }
         Object arg;
         switch (str) {
@@ -1672,7 +1681,6 @@ public class DBus implements IPC {
             arg = read_variant();
             break;
           case TYPE_DICT: {
-            if (types[idx++] != TYPE_DICT_OPEN.charAt(0)) throw new Exception("DBus:expected DICT OPEN");
             dict_key = Character.toString(types[idx++]);
             dict_value = Character.toString(types[idx++]);
             if (types[idx++] != TYPE_DICT_CLOSE.charAt(0)) throw new Exception("DBus:expected DICT CLOSE");
@@ -1683,7 +1691,6 @@ public class DBus implements IPC {
             StringBuilder struct_type = new StringBuilder();
             int depth = 1;
             char _type = types[idx++];
-            if (_type != TYPE_STRUCT_OPEN.charAt(0)) throw new Exception("DBus:expected STRUCT OPEN");
             struct_type.append(_type);
             do {
               _type = types[idx++];
@@ -1741,7 +1748,6 @@ public class DBus implements IPC {
             break;
           }
           case TYPE_ARRAY_DICT: {
-            if (types[idx++] != TYPE_DICT_OPEN.charAt(0)) throw new Exception("DBus:expected DICT OPEN");
             dict_key = Character.toString(types[idx++]);
             dict_value = Character.toString(types[idx++]);
             if (types[idx++] != TYPE_DICT_CLOSE.charAt(0)) throw new Exception("DBus:expected DICT CLOSE");
@@ -1752,7 +1758,6 @@ public class DBus implements IPC {
             StringBuilder struct_type = new StringBuilder();
             int depth = 1;
             char _type = types[idx++];
-            if (_type != TYPE_STRUCT_OPEN.charAt(0)) throw new Exception("DBus:expected STRUCT OPEN");
             struct_type.append(_type);
             do {
               _type = types[idx++];
