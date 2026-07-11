@@ -34,7 +34,7 @@ import javaforce.ipc.transport.*;
  *  - dictionary entry (JFTuple&lt;String,Object&gt;)
  *  - struct (JFArray)
  *  - variant (JFVariant)
- *  - array of dictionary entries (HashMap&lt;String,Object&gt;)
+ *  - array of dictionary entries (JFDictionary)
  *  - array of struct (JFArray[])
  *  - array of variant (JFVariant[])
  *
@@ -147,13 +147,13 @@ public class DBus implements IPC {
   public static final String TYPE_ARRAY_UINT8 = "ay";
 
   public static final String TYPE_ARRAY_INT16 = "an";
-//  public static final String TYPE_ARRAY_UINT16 = "aq";
+  public static final String TYPE_ARRAY_UINT16 = "aq";
 
   public static final String TYPE_ARRAY_INT32 = "ai";
-//  public static final String TYPE_ARRAY_UINT32 = "au";
+  public static final String TYPE_ARRAY_UINT32 = "au";
 
   public static final String TYPE_ARRAY_INT64 = "ax";
-//  public static final String TYPE_ARRAY_UINT64 = "at";
+  public static final String TYPE_ARRAY_UINT64 = "at";
 
   public static final String TYPE_ARRAY_DOUBLE = "ad";
   public static final String TYPE_ARRAY_BOOLEAN = "ab";
@@ -191,17 +191,23 @@ public class DBus implements IPC {
       return TYPE_ARRAY_UINT8;
     } else if (obj instanceof short[]) {
       return TYPE_ARRAY_INT16;
+    } else if (obj instanceof UShort[]) {
+      return TYPE_ARRAY_UINT16;
     } else if (obj instanceof int[]) {
       return TYPE_ARRAY_INT32;
+    } else if (obj instanceof UInteger[]) {
+      return TYPE_ARRAY_UINT32;
     } else if (obj instanceof long[]) {
       return TYPE_ARRAY_INT64;
+    } else if (obj instanceof ULong[]) {
+      return TYPE_ARRAY_UINT64;
     } else if (obj instanceof double[]) {
       return TYPE_ARRAY_DOUBLE;
     } else if (obj instanceof boolean[]) {
       return TYPE_ARRAY_BOOLEAN;
     } else if (obj instanceof String[]) {
       return TYPE_ARRAY_STRING;
-    } else if (obj instanceof HashMap) {
+    } else if (obj instanceof JFDictionary) {
       return TYPE_ARRAY_DICT;
     } else if (obj instanceof JFArray[]) {
       return TYPE_ARRAY_STRUCT;
@@ -211,6 +217,63 @@ public class DBus implements IPC {
       JFLog.log("DBus:Error:Unknown type:" + obj.getClass());
       return "-";
     }
+  }
+
+  private Class<?> getType(String sign) {
+    switch (sign) {
+      case TYPE_UINT8:
+        return Byte.class;
+      case TYPE_INT16:
+        return Short.class;
+      case TYPE_UINT16:
+        return UShort.class;
+      case TYPE_INT32:
+        return Integer.class;
+      case TYPE_UINT32:
+        return UInteger.class;
+      case TYPE_INT64:
+        return Long.class;
+      case TYPE_UINT64:
+        return ULong.class;
+      case TYPE_DOUBLE:
+        return Double.class;
+      case TYPE_BOOLEAN:
+        return Boolean.class;
+      case TYPE_STRING:
+        return String.class;
+      case TYPE_VARIANT:
+        return JFVariant.class;
+      case TYPE_DICT:
+        return JFTuple.class;
+      case TYPE_STRUCT:
+        return JFArray.class;
+      case TYPE_ARRAY_UINT8:
+        return byte[].class;
+      case TYPE_ARRAY_INT16:
+        return short[].class;
+      case TYPE_ARRAY_UINT16:
+        return UShort[].class;
+      case TYPE_ARRAY_INT32:
+        return int[].class;
+      case TYPE_ARRAY_UINT32:
+        return UInteger[].class;
+      case TYPE_ARRAY_INT64:
+        return long[].class;
+      case TYPE_ARRAY_UINT64:
+        return ULong[].class;
+      case TYPE_ARRAY_DOUBLE:
+        return double[].class;
+      case TYPE_ARRAY_STRING:
+        return String[].class;
+      case TYPE_ARRAY_VARIANT:
+        return JFVariant[].class;
+      case TYPE_ARRAY_DICT:
+        return JFDictionary[].class;
+      case TYPE_ARRAY_STRUCT:
+        return JFArray[].class;
+    }
+    JFLog.log("DBus:Error:Type unknown:" + sign);
+    return null;
   }
 
   public static final String DBUS_MESSAGE_BUS = "org.freedesktop.DBus";
@@ -631,11 +694,23 @@ public class DBus implements IPC {
         bodyLength += 4;  //length
         bodyLength += (d16.length * 2);
         break;
+      case TYPE_ARRAY_UINT16:
+        UShort[] u16 = (UShort[])arg;
+        balign(4);
+        bodyLength += 4;  //length
+        bodyLength += (u16.length * 2);
+        break;
       case TYPE_ARRAY_INT32:
         int[] d32 = (int[])arg;
         balign(4);
         bodyLength += 4;  //length
         bodyLength += (d32.length * 4);
+        break;
+      case TYPE_ARRAY_UINT32:
+        UInteger[] u32 = (UInteger[])arg;
+        balign(4);
+        bodyLength += 4;  //length
+        bodyLength += (u32.length * 4);
         break;
       case TYPE_ARRAY_INT64:
         long[] d64 = (long[])arg;
@@ -643,6 +718,13 @@ public class DBus implements IPC {
         bodyLength += 4;  //length
         balign(8);
         bodyLength += (d64.length * 8);
+        break;
+      case TYPE_ARRAY_UINT64:
+        ULong[] u64 = (ULong[])arg;
+        balign(4);
+        bodyLength += 4;  //length
+        balign(8);
+        bodyLength += (u64.length * 8);
         break;
       case TYPE_ARRAY_DOUBLE:
         double[] f64 = (double[])arg;
@@ -669,13 +751,13 @@ public class DBus implements IPC {
         }
         break;
       case TYPE_ARRAY_DICT:
-        HashMap<String, Object> map = (HashMap)arg;
-        String[] keys = map.keySet().toArray(new String[0]);
+        JFDictionary<String, Object> dict = (JFDictionary)arg;
+        String[] keys = dict.map.keySet().toArray(new String[0]);
         balign(4);
         bodyLength += 4;  //length
         for(String key : keys) {
           add_length(key);
-          add_length(map.get(key));
+          add_length(dict.map.get(key));
         }
         break;
       case TYPE_ARRAY_STRUCT:
@@ -715,7 +797,42 @@ public class DBus implements IPC {
     StringBuilder sign = new StringBuilder();
     for (int a = 0; a < argsLength; a++) {
       String dt = getDataType(args[a]);
-      sign.append(dt);
+      switch (dt) {
+        case TYPE_STRUCT: {
+          JFArray arr = (JFArray)args[a];
+          Object[] objs = arr.toArray();
+          sign.append("(");
+          sign.append(objs);
+          sign.append(")");
+          break;
+        }
+        case TYPE_DICT: {
+          JFTuple tuple = (JFTuple)args[a];
+          sign.append("{");
+          sign.append(getDataType(tuple.key_type));
+          sign.append(getDataType(tuple.value_type));
+          sign.append("}");
+          break;
+        }
+        case TYPE_ARRAY_DICT: {
+          JFDictionary map = (JFDictionary)args[a];
+          sign.append("a");
+          sign.append("{");
+          sign.append(getDataType(map.key_type));
+          sign.append(getDataType(map.value_type));
+          sign.append("}");
+          break;
+        }
+        case TYPE_ARRAY_STRUCT: {
+          JFTuple[] tuples = (JFTuple[])args[a];
+          sign.append("a");
+          sign.append(args_sign(new Object[] {tuples[0]}));
+          break;
+        }
+        default:
+          sign.append(dt);
+          break;
+      }
     }
     return sign.toString();
   }
@@ -756,16 +873,34 @@ public class DBus implements IPC {
     LE.setuint16(wpkt, wpos, value);
     wpos += 2;
   }
+  private void write_ushort(UShort value) throws Exception {
+    walign(2);
+    wcheck(2);
+    LE.setuint16(wpkt, wpos, value.getValue());
+    wpos += 2;
+  }
   private void write_int(int value) throws Exception {
     walign(4);
     wcheck(4);
     LE.setuint32(wpkt, wpos, value);
     wpos += 4;
   }
+  private void write_uint(UInteger value) throws Exception {
+    walign(4);
+    wcheck(4);
+    LE.setuint32(wpkt, wpos, value.getValue());
+    wpos += 4;
+  }
   private void write_long(long value) throws Exception {
     walign(8);
     wcheck(8);
     LE.setuint64(wpkt, wpos, value);
+    wpos += 8;
+  }
+  private void write_ulong(ULong value) throws Exception {
+    walign(8);
+    wcheck(8);
+    LE.setuint64(wpkt, wpos, value.getValue());
     wpos += 8;
   }
   private void write_double(double value) throws Exception {
@@ -813,16 +948,34 @@ public class DBus implements IPC {
       write_short(b);
     }
   }
+  private void write_array_ushort(UShort[] value) throws Exception {
+    write_int(value.length * 2);
+    for(UShort b : value) {
+      write_ushort(b);
+    }
+  }
   private void write_array_int(int[] value) throws Exception {
     write_int(value.length * 4);
     for(int b : value) {
       write_int(b);
     }
   }
+  private void write_array_uint(UInteger[] value) throws Exception {
+    write_int(value.length * 4);
+    for(UInteger b : value) {
+      write_uint(b);
+    }
+  }
   private void write_array_long(long[] value) throws Exception {
     write_int(value.length * 8);
     for(long b : value) {
       write_long(b);
+    }
+  }
+  private void write_array_ulong(ULong[] value) throws Exception {
+    write_int(value.length * 8);
+    for(ULong b : value) {
+      write_ulong(b);
     }
   }
   private void write_array_double(double[] value) throws Exception {
@@ -857,13 +1010,13 @@ public class DBus implements IPC {
       write_String(b);
     }
   }
-  private void write_array_dict(HashMap<String,Object> value) throws Exception {
-    String[] keys = value.keySet().toArray(new String[0]);
+  private void write_array_dict(JFDictionary<String,Object> value) throws Exception {
+    String[] keys = value.map.keySet().toArray(new String[0]);
     write_int(keys.length);
-    JFTuple<String, Object> tuple = new JFTuple<>();
+    JFTuple<String, Object> tuple = new JFTuple<>(value.key_type, value.value_type);
     for(String key : keys) {
       tuple.key = key;
-      tuple.value = value.get(key);
+      tuple.value = value.map.get(key);
       write_dict(tuple);
     }
   }
@@ -952,13 +1105,25 @@ public class DBus implements IPC {
         short[] an = (short[])obj;
         write_array_short(an);
         break;
+      case TYPE_ARRAY_UINT16:
+        UShort[] _an = (UShort[])obj;
+        write_array_ushort(_an);
+        break;
       case TYPE_ARRAY_INT32:
         int[] ai = (int[])obj;
         write_array_int(ai);
         break;
+      case TYPE_ARRAY_UINT32:
+        UInteger[] _ai = (UInteger[])obj;
+        write_array_uint(_ai);
+        break;
       case TYPE_ARRAY_INT64:
         long[] ax = (long[])obj;
         write_array_long(ax);
+        break;
+      case TYPE_ARRAY_UINT64:
+        ULong[] _ax = (ULong[])obj;
+        write_array_ulong(_ax);
         break;
       case TYPE_ARRAY_DOUBLE:
         double[] ad = (double[])obj;
@@ -973,7 +1138,7 @@ public class DBus implements IPC {
         write_array_String(as);
         break;
       case TYPE_ARRAY_DICT:
-        write_array_dict((HashMap<String,Object>)obj);
+        write_array_dict((JFDictionary<String,Object>)obj);
         break;
       case TYPE_ARRAY_STRUCT:
         write_array_struct((JFArray[])obj);
@@ -1543,12 +1708,24 @@ public class DBus implements IPC {
             arg = read_array_short();
             break;
           }
+          case TYPE_ARRAY_UINT16: {
+            arg = read_array_ushort();
+            break;
+          }
           case TYPE_ARRAY_INT32: {
             arg = read_array_int();
             break;
           }
+          case TYPE_ARRAY_UINT32: {
+            arg = read_array_uint();
+            break;
+          }
           case TYPE_ARRAY_INT64: {
             arg = read_array_long();
+            break;
+          }
+          case TYPE_ARRAY_UINT64: {
+            arg = read_array_ulong();
             break;
           }
           case TYPE_ARRAY_DOUBLE: {
@@ -1633,6 +1810,10 @@ public class DBus implements IPC {
       rpos += 2;
       return value;
     }
+    private UShort read_ushort() throws Exception {
+      short value = read_short();
+      return new UShort(value);
+    }
     private int read_int() throws Exception {
       ralign(4);
       rcheck(4);
@@ -1645,6 +1826,10 @@ public class DBus implements IPC {
       rpos += 4;
       return value;
     }
+    private UInteger read_uint() throws Exception {
+      int value = read_int();
+      return new UInteger(value);
+    }
     private long read_long() throws Exception {
       ralign(8);
       rcheck(8);
@@ -1656,6 +1841,10 @@ public class DBus implements IPC {
       }
       rpos += 8;
       return value;
+    }
+    private ULong read_ulong() throws Exception {
+      long value = read_long();
+      return new ULong(value);
     }
     private double read_double() throws Exception {
       ralign(8);
@@ -1677,8 +1866,9 @@ public class DBus implements IPC {
       rpos++;  //null
       return str;
     }
+    @SuppressWarnings("unchecked")
     private JFTuple<String,Object> read_dict(String K, String V) throws Exception {
-      JFTuple<String,Object> pair = new JFTuple<>();
+      JFTuple pair = new JFTuple(getType(K), getType(V));
       //K = String
       String key = (String)read_args(K)[0];
       //V = Variant
@@ -1720,6 +1910,16 @@ public class DBus implements IPC {
       }
       return data;
     }
+    private UShort[] read_array_ushort() throws Exception {
+      int len = read_int();
+      rcheck(len);
+      int cnt = len / 2;
+      UShort[] data = new UShort[cnt];
+      for(int i=0;i<cnt;i++) {
+        data[i] = read_ushort();
+      }
+      return data;
+    }
     private int[] read_array_int() throws Exception {
       int len = read_int();
       rcheck(len);
@@ -1730,6 +1930,16 @@ public class DBus implements IPC {
       }
       return data;
     }
+    private UInteger[] read_array_uint() throws Exception {
+      int len = read_int();
+      rcheck(len);
+      int cnt = len / 4;
+      UInteger[] data = new UInteger[cnt];
+      for(int i=0;i<cnt;i++) {
+        data[i] = read_uint();
+      }
+      return data;
+    }
     private long[] read_array_long() throws Exception {
       int len = read_int();
       rcheck(len);
@@ -1737,6 +1947,16 @@ public class DBus implements IPC {
       long[] data = new long[cnt];
       for(int i=0;i<cnt;i++) {
         data[i] = read_long();
+      }
+      return data;
+    }
+    private ULong[] read_array_ulong() throws Exception {
+      int len = read_int();
+      rcheck(len);
+      int cnt = len / 8;
+      ULong[] data = new ULong[cnt];
+      for(int i=0;i<cnt;i++) {
+        data[i] = read_ulong();
       }
       return data;
     }
@@ -1781,17 +2001,18 @@ public class DBus implements IPC {
       rpos++;  //null
       return str;
     }
-    private HashMap<String, Object> read_array_dict(String K, String V) throws Exception {
-      HashMap<String, Object> map = new HashMap<>();
+    @SuppressWarnings("unchecked")
+    private JFDictionary<String, Object> read_array_dict(String K, String V) throws Exception {
+      JFDictionary dict = new JFDictionary<>(getType(K), getType(V));
       int len = read_int();
       for(int idx=0;idx<len;idx++) {
         //K = String
         String key = (String)read_args(K)[0];
         //V = Variant
         Object value = read_args(V)[0];
-        map.put(key, value);
+        dict.map.put(key, value);
       }
-      return map;
+      return dict;
     }
     private Object[] read_array_struct(String types) throws Exception {
       int cnt = read_int();
