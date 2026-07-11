@@ -1,24 +1,29 @@
 package javaforce;
 
 import java.util.*;
+import java.lang.reflect.*;
 
 /** JF Array generic.
  *
  * @author pquiring
  */
 
-public abstract class JFArray<T> {
+public class JFArray<T> {
   protected T[] buf;
   protected int count;
+  protected Class type;
 
-  public static int initSize = 64;
+  public static int initSize = 16;
 
-  public JFArray() {
+  /** Construct new JFArray.
+   * @param type = T.class
+   */
+  @SuppressWarnings("unchecked")
+  public JFArray(Class<T> type) {
     count = 0;
-    alloc(initSize);
+    this.type = type;
+    buf = (T[])Array.newInstance(type, initSize);
   }
-
-  public abstract void alloc(int size);
 
   public int size() {
     return count;
@@ -28,29 +33,32 @@ public abstract class JFArray<T> {
     count = 0;
   }
 
+  private void grow(int minsize) {
+    int current = buf.length;
+    if (minsize <= current) return;
+    while (minsize > current) {
+      current <<= 1;
+    }
+    buf = Arrays.copyOf(buf, current);
+  }
+
   public void append(T s) {
     int newcount = count + 1;
-    if (newcount > buf.length) {
-      buf = Arrays.copyOf(buf, Math.max(buf.length << 1, newcount));
-    }
+    grow(newcount);
     buf[count] = s;
     count = newcount;
   }
 
   public void append(T[] s) {
     int newcount = count + s.length;
-    if (newcount > buf.length) {
-      buf = Arrays.copyOf(buf, Math.max(buf.length << 1, newcount));
-    }
+    grow(newcount);
     System.arraycopy(s, 0, buf, count, s.length);
     count = newcount;
   }
 
   public void set(T[] s, int pos) {
     int newcount = pos + s.length;
-    if (newcount > buf.length) {
-      buf = Arrays.copyOf(buf, Math.max(buf.length << 1, newcount));
-    }
+    grow(newcount);
     System.arraycopy(s, 0, buf, pos, s.length);
   }
 
@@ -67,4 +75,3 @@ public abstract class JFArray<T> {
     return buf;
   }
 }
-

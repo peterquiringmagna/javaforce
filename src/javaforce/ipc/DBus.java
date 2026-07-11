@@ -31,12 +31,12 @@ import javaforce.ipc.transport.*;
  *  - javaforce.UShort (invoke only) (primitive type is 'short')
  *  - javaforce.UInteger (invoke only) (primitive type is 'int')
  *  - javaforce.ULong (invoke only) (primitive type is 'long')
- *  - dictionary entries (return only) (returns JFTuple&lt;String,Object&gt;)
- *  - struct (return only) (returns Object[])
- *  - variant (return only) (returns Object)
- *  - array of dictionary entries (return only) (returns HashMap&lt;String,Object&gt;)
- *  - array of struct (return only) (returns Object[][])
- *  - array of variant (return only) (returns Object[])
+ *  - dictionary entry (JFTuple&lt;String,Object&gt;)
+ *  - struct (JFArray)
+ *  - variant (JFVariant)
+ *  - array of dictionary entries (HashMap&lt;String,Object&gt;)
+ *  - array of struct (JFArray[])
+ *  - array of variant (JFVariant[])
  *
  * Notes:
  *  - sender field required to send back RPC reply
@@ -181,6 +181,12 @@ public class DBus implements IPC {
       return TYPE_BOOLEAN;
     } else if (obj instanceof String) {
       return TYPE_STRING;
+    } else if (obj instanceof JFVariant) {
+      return TYPE_VARIANT;
+    } else if (obj instanceof JFTuple) {
+      return TYPE_DICT;
+    } else if (obj instanceof JFArray) {
+      return TYPE_STRUCT;
     } else if (obj instanceof byte[]) {
       return TYPE_ARRAY_UINT8;
     } else if (obj instanceof short[]) {
@@ -195,6 +201,12 @@ public class DBus implements IPC {
       return TYPE_ARRAY_BOOLEAN;
     } else if (obj instanceof String[]) {
       return TYPE_ARRAY_STRING;
+    } else if (obj instanceof HashMap) {
+      return TYPE_ARRAY_DICT;
+    } else if (obj instanceof JFArray[]) {
+      return TYPE_ARRAY_STRUCT;
+    } else if (obj instanceof JFVariant[]) {
+      return TYPE_ARRAY_VARIANT;
     } else {
       JFLog.log("DBus:Error:Unknown type:" + obj.getClass());
       return "-";
@@ -559,6 +571,130 @@ public class DBus implements IPC {
     bodyLength += pad;
   }
 
+  @SuppressWarnings("unchecked")
+  private void add_length(Object arg) {
+    String dt = getDataType(arg);
+    switch (dt) {
+      case TYPE_UINT8:
+        bodyLength++;
+        break;
+      case TYPE_INT16:
+      case TYPE_UINT16:
+        balign(2);
+        bodyLength += 2;
+        break;
+      case TYPE_INT32:
+      case TYPE_UINT32:
+      case TYPE_BOOLEAN:  //only lsb used
+        balign(4);
+        bodyLength += 4;
+        break;
+      case TYPE_DOUBLE:
+      case TYPE_INT64:
+      case TYPE_UINT64:
+        balign(8);
+        bodyLength += 8;
+        break;
+      case TYPE_OBJECT_PATH:
+      case TYPE_STRING:
+        String value = (String)arg;
+        balign(4);
+        bodyLength += 4;  //length
+        bodyLength += value.length();  //UTF-8 bytes
+        bodyLength++;  //null
+        break;
+      case TYPE_VARIANT:
+        JFVariant v = (JFVariant)arg;
+        add_length(v.value);
+        break;
+      case TYPE_DICT:
+        JFTuple<String,Object> tuple = (JFTuple<String, Object>)arg;
+        add_length(tuple.key);
+        add_length(tuple.value);
+        break;
+      case TYPE_STRUCT:
+        JFArray arr = (JFArray)arg;
+        Object[] objs = arr.toArray();
+        for(Object obj : objs) {
+          add_length(obj);
+        }
+        break;
+      case TYPE_ARRAY_UINT8:
+        byte[] d8 = (byte[])arg;
+        balign(4);
+        bodyLength += 4;  //length
+        bodyLength += d8.length;
+        break;
+      case TYPE_ARRAY_INT16:
+        short[] d16 = (short[])arg;
+        balign(4);
+        bodyLength += 4;  //length
+        bodyLength += (d16.length * 2);
+        break;
+      case TYPE_ARRAY_INT32:
+        int[] d32 = (int[])arg;
+        balign(4);
+        bodyLength += 4;  //length
+        bodyLength += (d32.length * 4);
+        break;
+      case TYPE_ARRAY_INT64:
+        long[] d64 = (long[])arg;
+        balign(4);
+        bodyLength += 4;  //length
+        balign(8);
+        bodyLength += (d64.length * 8);
+        break;
+      case TYPE_ARRAY_DOUBLE:
+        double[] f64 = (double[])arg;
+        balign(4);
+        bodyLength += 4;  //length
+        balign(8);
+        bodyLength += (f64.length * 8);
+        break;
+      case TYPE_ARRAY_BOOLEAN:
+        boolean[] b32 = (boolean[])arg;
+        balign(4);
+        bodyLength += 4;  //length
+        bodyLength += (b32.length * 4);
+        break;
+      case TYPE_ARRAY_STRING:
+        String[] s32 = (String[])arg;
+        balign(4);
+        bodyLength += 4;  //length
+        for(int b=0;b<s32.length;b++) {
+          balign(4);
+          bodyLength += 4;  //length
+          bodyLength += s32[b].length();
+          bodyLength++;  //null
+        }
+        break;
+      case TYPE_ARRAY_DICT:
+        HashMap<String, Object> map = (HashMap)arg;
+        String[] keys = map.keySet().toArray(new String[0]);
+        balign(4);
+        bodyLength += 4;  //length
+        for(String key : keys) {
+          add_length(key);
+          add_length(map.get(key));
+        }
+        break;
+      case TYPE_ARRAY_STRUCT:
+        JFArray[] arrs = (JFArray[])arg;
+        for(JFArray aarr : arrs) {
+          add_length(aarr);
+        }
+        break;
+      case TYPE_ARRAY_VARIANT:
+        JFVariant[] vars = (JFVariant[])arg;
+        for(JFVariant _var_ : vars) {
+          add_length(_var_);
+        }
+        break;
+      default:
+        JFLog.log("DBus:Error:Unknown type:" + arg.getClass());
+    }
+  }
+
   /** Calculates size of body.
    *
    * Note : this method is already synced with write_msg()
@@ -567,88 +703,8 @@ public class DBus implements IPC {
     int argsLength = args.length;
     bodyLength = 0;
     for (int a = 0; a < argsLength; a++) {
-      String dt = getDataType(args[a]);
-      switch (dt) {
-        case TYPE_UINT8:
-          bodyLength++;
-          break;
-        case TYPE_INT16:
-        case TYPE_UINT16:
-          balign(2);
-          bodyLength += 2;
-          break;
-        case TYPE_INT32:
-        case TYPE_UINT32:
-        case TYPE_BOOLEAN:  //only lsb used
-          balign(4);
-          bodyLength += 4;
-          break;
-        case TYPE_DOUBLE:
-        case TYPE_INT64:
-        case TYPE_UINT64:
-          balign(8);
-          bodyLength += 8;
-          break;
-        case TYPE_STRING:
-          String value = (String)args[a];
-          balign(4);
-          bodyLength += 4;  //length
-          bodyLength += value.length();  //UTF-8 bytes
-          bodyLength++;  //null
-          break;
-        case TYPE_ARRAY_UINT8:
-          byte[] d8 = (byte[])args[a];
-          balign(4);
-          bodyLength += 4;  //length
-          bodyLength += d8.length;
-          break;
-        case TYPE_ARRAY_INT16:
-          short[] d16 = (short[])args[a];
-          balign(4);
-          bodyLength += 4;  //length
-          bodyLength += (d16.length * 2);
-          break;
-        case TYPE_ARRAY_INT32:
-          int[] d32 = (int[])args[a];
-          balign(4);
-          bodyLength += 4;  //length
-          bodyLength += (d32.length * 4);
-          break;
-        case TYPE_ARRAY_INT64:
-          long[] d64 = (long[])args[a];
-          balign(4);
-          bodyLength += 4;  //length
-          balign(8);
-          bodyLength += (d64.length * 8);
-          break;
-        case TYPE_ARRAY_DOUBLE:
-          double[] f64 = (double[])args[a];
-          balign(4);
-          bodyLength += 4;  //length
-          balign(8);
-          bodyLength += (f64.length * 8);
-          break;
-        case TYPE_ARRAY_BOOLEAN:
-          boolean[] b32 = (boolean[])args[a];
-          balign(4);
-          bodyLength += 4;  //length
-          bodyLength += (b32.length * 4);
-          break;
-        case TYPE_ARRAY_STRING:
-          String[] s32 = (String[])args[a];
-          balign(4);
-          bodyLength += 4;  //length
-          for(int b=0;b<s32.length;b++) {
-            balign(4);
-            bodyLength += 4;  //length
-            bodyLength += s32[b].length();
-            bodyLength++;  //null
-          }
-          break;
-        default:
-          JFLog.log("DBus:Error:Unknown type:" + args[a].getClass());
-          return 0;
-      }
+      Object arg = args[a];
+      add_length(arg);
     }
     return bodyLength;
   }
@@ -732,6 +788,19 @@ public class DBus implements IPC {
     wpos += strlen;
     wpkt[wpos++] = 0;  //null
   }
+  private void write_variant(JFVariant value) throws Exception {
+    write_type(value.value);
+  }
+  private void write_dict(JFTuple<String,Object> value) throws Exception {
+    write_String(value.key);
+    write_type(value.value);
+  }
+  private void write_struct(JFArray value) throws Exception {
+    Object[] arr = value.toArray();
+    for(Object obj : arr) {
+      write_type(obj);
+    }
+  }
   private void write_array_byte(byte[] value) throws Exception {
     write_int(value.length);
     for(byte b : value) {
@@ -788,6 +857,29 @@ public class DBus implements IPC {
       write_String(b);
     }
   }
+  private void write_array_dict(HashMap<String,Object> value) throws Exception {
+    String[] keys = value.keySet().toArray(new String[0]);
+    write_int(keys.length);
+    JFTuple<String, Object> tuple = new JFTuple<>();
+    for(String key : keys) {
+      tuple.key = key;
+      tuple.value = value.get(key);
+      write_dict(tuple);
+    }
+  }
+  private void write_array_struct(JFArray[] value) throws Exception {
+    write_int(value.length);
+    for(JFArray arr : value) {
+      write_struct(arr);
+    }
+  }
+  private void write_array_variant(JFVariant[] value) throws Exception {
+    write_int(value.length);
+    for(JFVariant arr : value) {
+      write_variant(arr);
+    }
+  }
+
   private void write_sign(char value) throws Exception {
     write_byte((byte)1);
     wcheck(1 + 1);
@@ -804,6 +896,95 @@ public class DBus implements IPC {
     System.arraycopy(value.getBytes(), 0, wpkt, wpos, strlen);
     wpos += strlen;
     wpkt[wpos++] = 0;  //null
+  }
+
+  @SuppressWarnings("unchecked")
+  private void write_type(Object obj) throws Exception {
+    String dt = getDataType(obj);
+    switch (dt) {
+      case TYPE_UINT8:
+        write_byte((byte)obj);
+        break;
+      case TYPE_INT16:
+        write_short((short)obj);
+        break;
+      case TYPE_UINT16:
+        UShort ushort = (UShort)obj;
+        write_short(ushort.getValue());
+        break;
+      case TYPE_INT32:
+        write_int((int)obj);
+        break;
+      case TYPE_UINT32:
+        UInteger uint = (UInteger)obj;
+        write_int(uint.getValue());
+        break;
+      case TYPE_INT64:
+        write_long((long)obj);
+        break;
+      case TYPE_UINT64:
+        ULong ulong = (ULong)obj;
+        write_long(ulong.getValue());
+        break;
+      case TYPE_DOUBLE:
+        write_double((double)obj);
+        break;
+      case TYPE_BOOLEAN:
+        write_boolean((boolean)obj);
+        break;
+      case TYPE_STRING:
+        write_String((String)obj);
+        break;
+      case TYPE_VARIANT:
+        write_variant((JFVariant)obj);
+        break;
+      case TYPE_DICT:
+        write_dict((JFTuple<String,Object>)obj);
+        break;
+      case TYPE_STRUCT:
+        write_struct((JFArray)obj);
+        break;
+      case TYPE_ARRAY_UINT8:
+        byte[] ay = (byte[])obj;
+        write_array_byte(ay);
+        break;
+      case TYPE_ARRAY_INT16:
+        short[] an = (short[])obj;
+        write_array_short(an);
+        break;
+      case TYPE_ARRAY_INT32:
+        int[] ai = (int[])obj;
+        write_array_int(ai);
+        break;
+      case TYPE_ARRAY_INT64:
+        long[] ax = (long[])obj;
+        write_array_long(ax);
+        break;
+      case TYPE_ARRAY_DOUBLE:
+        double[] ad = (double[])obj;
+        write_array_double(ad);
+        break;
+      case TYPE_ARRAY_BOOLEAN:
+        boolean[] ab = (boolean[])obj;
+        write_array_boolean(ab);
+        break;
+      case TYPE_ARRAY_STRING:
+        String[] as = (String[])obj;
+        write_array_String(as);
+        break;
+      case TYPE_ARRAY_DICT:
+        write_array_dict((HashMap<String,Object>)obj);
+        break;
+      case TYPE_ARRAY_STRUCT:
+        write_array_struct((JFArray[])obj);
+        break;
+      case TYPE_ARRAY_VARIANT:
+        write_array_variant((JFVariant[])obj);
+        break;
+      default: {
+        throw new Exception("DBus:Error:Unknown type:" + obj.getClass());
+      }
+    }
   }
 
   private Object write_msg_lock = new Object();
@@ -898,73 +1079,7 @@ public class DBus implements IPC {
 
         //write args (body)
         for(Object obj : args) {
-          String dt = getDataType(obj);
-          switch (dt) {
-            case TYPE_UINT8:
-              write_byte((byte)obj);
-              break;
-            case TYPE_INT16:
-              write_short((short)obj);
-              break;
-            case TYPE_UINT16:
-              UShort ushort = (UShort)obj;
-              write_short(ushort.getValue());
-              break;
-            case TYPE_INT32:
-              write_int((int)obj);
-              break;
-            case TYPE_UINT32:
-              UInteger uint = (UInteger)obj;
-              write_int(uint.getValue());
-              break;
-            case TYPE_INT64:
-              write_long((long)obj);
-              break;
-            case TYPE_UINT64:
-              ULong ulong = (ULong)obj;
-              write_long(ulong.getValue());
-              break;
-            case TYPE_DOUBLE:
-              write_double((double)obj);
-              break;
-            case TYPE_BOOLEAN:
-              write_boolean((boolean)obj);
-              break;
-            case TYPE_STRING:
-              write_String((String)obj);
-              break;
-            case TYPE_ARRAY_UINT8:
-              byte[] ay = (byte[])obj;
-              write_array_byte(ay);
-              break;
-            case TYPE_ARRAY_INT16:
-              short[] an = (short[])obj;
-              write_array_short(an);
-              break;
-            case TYPE_ARRAY_INT32:
-              int[] ai = (int[])obj;
-              write_array_int(ai);
-              break;
-            case TYPE_ARRAY_INT64:
-              long[] ax = (long[])obj;
-              write_array_long(ax);
-              break;
-            case TYPE_ARRAY_DOUBLE:
-              double[] ad = (double[])obj;
-              write_array_double(ad);
-              break;
-            case TYPE_ARRAY_BOOLEAN:
-              boolean[] ab = (boolean[])obj;
-              write_array_boolean(ab);
-              break;
-            case TYPE_ARRAY_STRING:
-              String[] as = (String[])obj;
-              write_array_String(as);
-              break;
-            default: {
-              throw new Exception("DBus:Error:Unknown type:" + obj.getClass());
-            }
-          }
+          write_type(obj);
         }
         //write packet
         write(dest, wpkt, 0, wpos);
@@ -1388,16 +1503,15 @@ public class DBus implements IPC {
             arg = read_String();
             break;
           }
+          case TYPE_VARIANT:
+            arg = read_variant();
+            break;
           case TYPE_DICT: {
             if (types[idx++] != TYPE_DICT_OPEN.charAt(0)) throw new Exception("DBus:expected DICT OPEN");
             dict_key = Character.toString(types[idx++]);
             dict_value = Character.toString(types[idx++]);
             if (types[idx++] != TYPE_DICT_CLOSE.charAt(0)) throw new Exception("DBus:expected DICT CLOSE");
             arg = read_dict(dict_key, dict_value);
-            break;
-          }
-          case TYPE_VARIANT: {
-            arg = read_variant();
             break;
           }
           case TYPE_STRUCT: {
@@ -1418,7 +1532,7 @@ public class DBus implements IPC {
                   break;
               }
             } while (depth > 0);
-            arg = read_struct(struct_type.toString());
+            arg = (JFArray)read_struct(struct_type.toString());
             break;
           }
           case TYPE_ARRAY_UINT8: {
@@ -1573,14 +1687,20 @@ public class DBus implements IPC {
       pair.value = value;
       return pair;
     }
-    private Object[] read_struct(String types) throws Exception {
+    private JFArray read_struct(String types) throws Exception {
       if (!types.startsWith(TYPE_STRUCT_OPEN)) throw new Exception("DBus:expected STRUCT OPEN");
       if (!types.endsWith(TYPE_STRUCT_CLOSE)) throw new Exception("DBus:expected STRUCT CLOSE");
-      return read_args(types.substring(1, types.length() - 1));
+      Object[] arr = read_args(types.substring(1, types.length() - 1));
+      JFArray<Object> struct = new JFArray<Object>(Object.class);
+      struct.set(arr, 0);
+      return struct;
     }
+    @SuppressWarnings("unchecked")
     private Object read_variant() throws Exception {
       String vartype = read_type();
-      return read_args(vartype)[0];
+      JFVariant v = new JFVariant();
+      v.value = read_args(vartype)[0];
+      return v;
     }
     private byte[] read_array_byte() throws Exception {
       int len = read_int();
@@ -1675,7 +1795,7 @@ public class DBus implements IPC {
     }
     private Object[] read_array_struct(String types) throws Exception {
       int cnt = read_int();
-      Object[] vars = new Object[cnt];
+      JFArray[] vars = new JFArray[cnt];
       for(int i=0;i<cnt;i++) {
         vars[i] = read_struct(types);
       }
