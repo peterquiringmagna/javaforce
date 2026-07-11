@@ -39,6 +39,7 @@ set VCPKG_DEFAULT_TRIPLET=x64-windows
 SET PATH=%MSVS%\%VCYEAR%\%VCTYPE%\VC\Tools\MSVC\%VCVER%\bin\HostX64\x64;%PATH%
 SET PATH=%MSVS%\%VCYEAR%\%VCTYPE%\Common7\IDE\VC\VCPackages;%PATH%
 SET PATH=%MSVS%\%VCYEAR%\%VCTYPE%\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer;%PATH%
+SET PATH=%MSVS%\%VCYEAR%\%VCTYPE%\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin;%PATH%
 SET PATH=%MSVS%\%VCYEAR%\%VCTYPE%\MSBuild\Current\bin\Roslyn;%PATH%
 SET PATH=%MSVS%\%VCYEAR%\%VCTYPE%\MSBuild\Current\bin;%PATH%
 SET PATH=%MSVS%\%VCYEAR%\%VCTYPE%\Common7\IDE\;%PATH%
