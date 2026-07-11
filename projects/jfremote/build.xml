@@ -8,6 +8,8 @@
   <property name="classpath" location="javaforce.jar"/>
   <property name="jre" location="${home}/jre_base_desktop"/>
   <property name="version" value="0.10"/>
+  <property name="freerdp-version" value="3.24.1"/>
+  <property name="wixheat" value="freerdp"/>
 
   <import file="${home}/base.xml"/>
 
@@ -32,10 +34,11 @@
   </target>
 
   <target name="get-freerdp-bin" description="download exes for Win64">
-    <echo message="Downloading: wfreerdp"/>
-    <get src="https://javaforce.sf.net/freerdp/wfreerdp.exe" dest="wfreerdp.exe"/>
-    <echo message="Downloading: sdl-freerdp"/>
-    <get src="https://javaforce.sf.net/freerdp/sdl-freerdp.exe" dest="sdl-freerdp.exe"/>
+    <echo message="Downloading: freerdp"/>
+    <get src="https://javaforce.sf.net/freerdp/freerdp-${freerdp-version}.zip" dest="freerdp-${freerdp-version}.zip"/>
+    <echo message="Unzipping: freerdp"/>
+    <mkdir dir="freerdp"/>
+    <unzip src="freerdp-${freerdp-version}.zip" dest="freerdp"/>
   </target>
 
   <target name="get-jfvnc-bin" description="copy jfvnc exe for win64">

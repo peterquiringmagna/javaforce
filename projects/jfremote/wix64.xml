@@ -45,6 +45,8 @@
       <ComponentRef Id="appfiles" />
       <ComponentRef Id="ApplicationShortcut" />
       <ComponentGroupRef Id="JRE" />
+      <ComponentGroupRef Id="FFMPEG" />
+      <ComponentGroupRef Id="freerdp" />
     </Feature>
 
     </Package>

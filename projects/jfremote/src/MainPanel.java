@@ -431,7 +431,7 @@ public class MainPanel extends javax.swing.JPanel {
         }
         JFLog.log("cmd=" + c);
       }
-      Runtime.getRuntime().exec(cmd.toArray(new String[0]));
+      run(cmd.toArray(new String[0]));
     } catch (Exception e) {
       JFAWT.showError("Error", "Failed to execute rdesktop");
     }
@@ -454,10 +454,16 @@ public class MainPanel extends javax.swing.JPanel {
     }
     try {
       String cmd[] = {"jfvnc", host, pass, encodings};
-      Runtime.getRuntime().exec(cmd);
+      run(cmd);
     } catch (Exception e) {
       JFAWT.showError("Error", "Failed to execute jfvnc");
     }
+  }
+
+  private void run(String[] cmd) throws Exception {
+    ProcessBuilder pb = new ProcessBuilder(cmd);
+    pb.directory(new File("."));
+    Process p = pb.start();
   }
 
   private void loadConfig() {

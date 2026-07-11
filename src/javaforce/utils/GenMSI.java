@@ -43,6 +43,7 @@ public class GenMSI {
     String light_extra = tools.getProperty("light_extra");
     String ffmpeg_version = tools.getVersion("ffmpeg-version");
     String ffmpeg_folder = home + "/ffmpeg-bin/" + ffmpeg_version;
+    String[] wixheats = tools.getProperty("wixheat").split(",");
 
     String out = msi + "-" + version + "-win64.msi";
     String pdb = msi + "-" + version + "-win64.wixpdb";
@@ -90,6 +91,16 @@ public class GenMSI {
         if (output.errorLevel > 0) throw new Exception("error");
       }
 
+      for(String wixheat : wixheats) {
+        //create custom object
+        if (wixheat.trim().length() == 0) continue;
+        WixHeat.main(new String[] {wixheat, wixheat + ".xml", wixheat, "."});
+        ShellProcess.Output output = ShellProcess.exec(new String[] {"wix","build","-arch","x64","-o",wixheat + ".wixlib",wixheat + ".xml"}, true);
+        if (output == null) throw new Exception("error");
+        System.out.println(output.stdout);
+        if (output.errorLevel > 0) throw new Exception("error");
+      }
+
       {
         //create msi file
         //see https://wixtoolset.org/docs/fourthree/faqs/
@@ -102,6 +113,12 @@ public class GenMSI {
           for(String x : extra) {
             cmd = JF.copyOfInsert(cmd, cmd.length, x);
           }
+        }
+        for(String wixheat : wixheats) {
+          if (wixheat.trim().length() == 0) continue;
+          cmd = JF.copyOfInsert(cmd, cmd.length, wixheat + ".wixlib");
+          cmd = JF.copyOfInsert(cmd, cmd.length, "-b");
+          cmd = JF.copyOfInsert(cmd, cmd.length, wixheat);
         }
         ShellProcess.Output output = ShellProcess.exec(cmd, true);
         if (output == null) throw new Exception("error");
