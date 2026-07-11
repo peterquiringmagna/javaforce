@@ -32,7 +32,7 @@ public class Dispatcher {
     int argsLength = args.length;
     Class[] types = new Class[argsLength];
     for (int a = 0; a < argsLength; a++) {
-      String dt = DBus.getDataType(args[a]);
+      String dt = DBus.getObjectType(args[a]);
       switch (dt) {
         case TYPE_UINT8:
           types[a] = byte.class;  //not the same as Byte.class
@@ -41,19 +41,19 @@ public class Dispatcher {
           types[a] = short.class;  //not the same as Short.class
           break;
         case TYPE_UINT16:
-          types[a] = short.class;  //NOTE:this is the same as 'short' since Java does NOT have a primitive ushort type
+          types[a] = UShort.class;
           break;
         case TYPE_INT32:
           types[a] = int.class;  //not the same as Integer.class
           break;
         case TYPE_UINT32:
-          types[a] = int.class;  //NOTE:this is the same as 'int' since Java does NOT have a primitive uint type
+          types[a] = UInteger.class;
           break;
         case TYPE_INT64:
           types[a] = long.class;  //not the same as Integer.class
           break;
         case TYPE_UINT64:
-          types[a] = long.class;  //NOTE:this is the same as 'long' since Java does NOT have a primitive ulong type
+          types[a] = ULong.class;
           break;
         case TYPE_DOUBLE:
           types[a] = double.class;  //not the same as Double.class
@@ -62,28 +62,55 @@ public class Dispatcher {
           types[a] = boolean.class;  //not the same as Boolean.class
           break;
         case TYPE_STRING:
-          types[a] = args[a].getClass();  //String.class
+          types[a] = args[a].getClass();
+          break;
+        case TYPE_VARIANT:
+          types[a] = JFVariant.class;
+          break;
+        case TYPE_DICT:
+          types[a] = JFTuple.class;
+          break;
+        case TYPE_STRUCT:
+          types[a] = JFArray.class;
           break;
         case TYPE_ARRAY_UINT8:
-          types[a] = byte[].class;  //byte[].class
+          types[a] = byte[].class;
           break;
         case TYPE_ARRAY_INT16:
-          types[a] = short[].class;  //short[].class
+          types[a] = short[].class;
+          break;
+        case TYPE_ARRAY_UINT16:
+          types[a] = UShort[].class;
           break;
         case TYPE_ARRAY_INT32:
-          types[a] = int[].class;  //int[].class
+          types[a] = int[].class;
+          break;
+        case TYPE_ARRAY_UINT32:
+          types[a] = UInteger[].class;
           break;
         case TYPE_ARRAY_INT64:
-          types[a] = long[].class;  //long[].class
+          types[a] = long[].class;
+          break;
+        case TYPE_ARRAY_UINT64:
+          types[a] = ULong[].class;
           break;
         case TYPE_ARRAY_DOUBLE:
-          types[a] = double[].class;  //double[].class
+          types[a] = double[].class;
           break;
         case TYPE_ARRAY_BOOLEAN:
-          types[a] = boolean[].class;  //boolean[].class
+          types[a] = boolean[].class;
           break;
         case TYPE_ARRAY_STRING:
-          types[a] = String[].class;  //String[].class
+          types[a] = String[].class;
+          break;
+        case TYPE_ARRAY_VARIANT:
+          types[a] = JFVariant[].class;
+          break;
+        case TYPE_ARRAY_DICT:
+          types[a] = JFDictionary.class;
+          break;
+        case TYPE_ARRAY_STRUCT:
+          types[a] = JFArray[].class;
           break;
         default: {
           JFLog.log("Dispatcher:Error:Unknown type:" + args[a]);

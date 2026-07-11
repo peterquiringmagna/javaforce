@@ -136,7 +136,7 @@ public class DBus implements IPC {
   public static final String TYPE_STRUCT = "r";
   public static final String TYPE_STRUCT_OPEN = "(";
   public static final String TYPE_STRUCT_CLOSE = ")";
-  public static final String TYPE_DICT = "e";
+  public static final String TYPE_DICT = "e";  //illegal : must use TYPE_ARRAY_DICT
   public static final String TYPE_DICT_OPEN = "{";
   public static final String TYPE_DICT_CLOSE = "}";
   public static final String TYPE_VARIANT = "v";
@@ -163,7 +163,7 @@ public class DBus implements IPC {
   public static final String TYPE_ARRAY_VARIANT = "av";
 
   /** Returns DBus data type of obj. */
-  public static String getDataType(Object obj) {
+  public static String getObjectType(Object obj) {
     //float32 is not supported ???
     if (obj instanceof Byte) {
       return TYPE_UINT8;
@@ -217,6 +217,62 @@ public class DBus implements IPC {
       JFLog.log("DBus:Error:Unknown type:" + obj.getClass());
       return "-";
     }
+  }
+
+  private String getClassType(Class<?> cls) {
+    if (cls == byte.class) {
+      return TYPE_UINT8;
+    }
+    if (cls == short.class) {
+      return TYPE_INT16;
+    }
+    if (cls == UShort.class) {
+      return TYPE_UINT16;
+    }
+    if (cls == int.class) {
+      return TYPE_INT32;
+    }
+    if (cls == UInteger.class) {
+      return TYPE_UINT32;
+    }
+    if (cls == long.class) {
+      return TYPE_INT64;
+    }
+    if (cls == ULong.class) {
+      return TYPE_UINT64;
+    }
+    if (cls == double.class) {
+      return TYPE_DOUBLE;
+    }
+    if (cls == boolean.class) {
+      return TYPE_BOOLEAN;
+    }
+    if (cls == String.class) {
+      return TYPE_STRING;
+    }
+    if (cls == JFVariant.class) {
+      return TYPE_VARIANT;
+    }
+    if (cls == JFTuple.class) {
+      return TYPE_DICT;
+    }
+    if (cls == JFArray.class) {
+      return TYPE_STRUCT;
+    }
+    if (cls == String[].class) {
+      return TYPE_ARRAY_STRING;
+    }
+    if (cls == JFVariant[].class) {
+      return TYPE_ARRAY_VARIANT;
+    }
+    if (cls == JFDictionary.class) {
+      return TYPE_ARRAY_DICT;
+    }
+    if (cls == JFArray[].class) {
+      return TYPE_ARRAY_STRUCT;
+    }
+    JFLog.log("DBus.getClassType() : Unknown Class : " + cls);
+    return null;
   }
 
   private Class<?> getType(String sign) {
@@ -636,7 +692,7 @@ public class DBus implements IPC {
 
   @SuppressWarnings("unchecked")
   private void add_length(Object arg) {
-    String dt = getDataType(arg);
+    String dt = getObjectType(arg);
     switch (dt) {
       case TYPE_UINT8:
         bodyLength++;
@@ -792,11 +848,11 @@ public class DBus implements IPC {
   }
 
   /** Generates method signature. */
-  private String args_sign(Object[] args) {
+  private String gen_sign(Object[] args) {
     int argsLength = args.length;
     StringBuilder sign = new StringBuilder();
     for (int a = 0; a < argsLength; a++) {
-      String dt = getDataType(args[a]);
+      String dt = getObjectType(args[a]);
       switch (dt) {
         case TYPE_STRUCT: {
           JFArray arr = (JFArray)args[a];
@@ -809,8 +865,8 @@ public class DBus implements IPC {
         case TYPE_DICT: {
           JFTuple tuple = (JFTuple)args[a];
           sign.append("{");
-          sign.append(getDataType(tuple.key_type));
-          sign.append(getDataType(tuple.value_type));
+          sign.append(getClassType(tuple.key_type));
+          sign.append(getClassType(tuple.value_type));
           sign.append("}");
           break;
         }
@@ -818,15 +874,15 @@ public class DBus implements IPC {
           JFDictionary map = (JFDictionary)args[a];
           sign.append("a");
           sign.append("{");
-          sign.append(getDataType(map.key_type));
-          sign.append(getDataType(map.value_type));
+          sign.append(getClassType(map.key_type));
+          sign.append(getClassType(map.value_type));
           sign.append("}");
           break;
         }
         case TYPE_ARRAY_STRUCT: {
           JFTuple[] tuples = (JFTuple[])args[a];
           sign.append("a");
-          sign.append(args_sign(new Object[] {tuples[0]}));
+          sign.append(gen_sign(new Object[] {tuples[0]}));
           break;
         }
         default:
@@ -1053,7 +1109,7 @@ public class DBus implements IPC {
 
   @SuppressWarnings("unchecked")
   private void write_type(Object obj) throws Exception {
-    String dt = getDataType(obj);
+    String dt = getObjectType(obj);
     switch (dt) {
       case TYPE_UINT8:
         write_byte((byte)obj);
@@ -1162,7 +1218,7 @@ public class DBus implements IPC {
     synchronized (write_msg_lock) {
       boolean write_to_dbus = dest.equals(DBUS_MESSAGE_BUS);
       int body_size = args_length(args);
-      String sign = args_sign(args);
+      String sign = gen_sign(args);
       wpos = 0;
       if (args == null) args = new Object[0];
 
