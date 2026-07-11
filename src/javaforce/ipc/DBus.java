@@ -1293,11 +1293,15 @@ public class DBus implements IPC {
       String sender = null;
       String member = null;
       String sign = null;
+      String error = null;
       int reply_serial = -1;
       int cnt = fields.size();
       for(int a=0;a<cnt;a++) {
         Field field = fields.get(a);
         switch (field.type) {
+          case FIELD_ERROR_MSG:
+            error = (String)field.value;
+            break;
           case FIELD_MEMBER:
             member = (String)field.value;
             break;
@@ -1316,7 +1320,14 @@ public class DBus implements IPC {
         }
       }
       if (debug_msg) JFLog.log("DBus.method_error:" + member + ":" + reply_serial);
-      Object[] args = read_args(sign);
+      Object[] args = null;
+      if (sign != null) {
+        args = read_args(sign);
+      } else if (error != null) {
+        args = new String[] {error};
+      } else {
+        args = new String[] {"Unknown Error"};
+      }
       synchronized (invokes_lock) {
         for(Invoke invoke : invokes) {
           if (invoke.serial == reply_serial) {
