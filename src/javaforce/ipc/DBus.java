@@ -816,18 +816,24 @@ public class DBus implements IPC {
         balign(4);
         bodyLength += 4;  //length
         for(Object key : keys) {
+          balign(8);
           add_length(key);
           add_length(dict.map.get(key));
         }
         break;
       case TYPE_ARRAY_STRUCT:
-        JFArray[] arrs = (JFArray[])arg;
-        for(JFArray aarr : arrs) {
-          add_length(aarr);
+        JFArray[] structs = (JFArray[])arg;
+        balign(4);
+        bodyLength += 4;  //length
+        for(JFArray struct : structs) {
+          balign(8);
+          add_length(struct);
         }
         break;
       case TYPE_ARRAY_VARIANT:
         JFVariant[] vars = (JFVariant[])arg;
+        balign(4);
+        bodyLength += 4;  //length
         for(JFVariant _var_ : vars) {
           add_length(_var_);
         }
