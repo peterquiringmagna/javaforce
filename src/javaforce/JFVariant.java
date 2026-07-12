@@ -8,5 +8,7 @@ package javaforce;
 public class JFVariant<T> {
   public T value;
 
-  public JFVariant() {}
+  public JFVariant(T value) {
+    this.value = value;
+  }
 }

@@ -981,6 +981,9 @@ public class DBus implements IPC {
   }
   private void write_variant(JFVariant value) throws Exception {
     String dt = getObjectType(value.value);
+    if (debug) {
+      JFLog.log("DBus.Variant.Type=" + dt);
+    }
     int strlen = dt.length();
     wcheck(strlen);
     System.arraycopy(dt.getBytes(), 0, wpkt, wpos, strlen);
@@ -1168,24 +1171,24 @@ public class DBus implements IPC {
         write_array_short(an);
         break;
       case TYPE_ARRAY_UINT16:
-        UShort[] _an = (UShort[])obj;
-        write_array_ushort(_an);
+        UShort[] aq = (UShort[])obj;
+        write_array_ushort(aq);
         break;
       case TYPE_ARRAY_INT32:
         int[] ai = (int[])obj;
         write_array_int(ai);
         break;
       case TYPE_ARRAY_UINT32:
-        UInteger[] _ai = (UInteger[])obj;
-        write_array_uint(_ai);
+        UInteger[] au = (UInteger[])obj;
+        write_array_uint(au);
         break;
       case TYPE_ARRAY_INT64:
         long[] ax = (long[])obj;
         write_array_long(ax);
         break;
       case TYPE_ARRAY_UINT64:
-        ULong[] _ax = (ULong[])obj;
-        write_array_ulong(_ax);
+        ULong[] at = (ULong[])obj;
+        write_array_ulong(at);
         break;
       case TYPE_ARRAY_DOUBLE:
         double[] ad = (double[])obj;
@@ -1953,8 +1956,7 @@ public class DBus implements IPC {
     @SuppressWarnings("unchecked")
     private Object read_variant() throws Exception {
       String vartype = read_type();
-      JFVariant v = new JFVariant();
-      v.value = read_args(vartype)[0];
+      JFVariant v = new JFVariant(read_args(vartype)[0]);
       return v;
     }
     private byte[] read_array_byte() throws Exception {
