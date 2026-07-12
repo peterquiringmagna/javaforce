@@ -1957,7 +1957,8 @@ public class DBus implements IPC {
       return array.toArray(JF.StringArrayType);
     }
     private String read_sign() throws Exception {
-      int strlen = read_byte();
+      int strlen = read_byte() & 0xff;
+      if (strlen == 0) throw new Exception("DBus:Invalid zero-length sign @" + rpos);
       rcheck(strlen + 1);  //+1 for null
       String str = new String(rpkt, rpos, strlen);
       rpos += strlen;
