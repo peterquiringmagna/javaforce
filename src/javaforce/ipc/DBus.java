@@ -63,9 +63,9 @@ import javaforce.ipc.transport.*;
 
 public class DBus implements IPC {
 
-  private static final boolean debug = false;
-  private static final boolean debug_msg = false;
-  private static final boolean debug_reading = false;
+  public static boolean debug = false;
+  public static boolean debug_msg = false;
+  public static boolean debug_reading = false;
 
   private static final long max_packet_size = 32 * JF.MB;
 
@@ -1575,6 +1575,9 @@ public class DBus implements IPC {
     }
     private Object[] read_args(String sign) throws Exception {
       //get args using signature and body
+      if (debug) {
+        JFLog.log("read_args:" + sign);
+      }
       char[] types = sign.toCharArray();
       ArrayList<Object> args = new ArrayList<>();
       String str;
