@@ -915,26 +915,44 @@ public class DBus implements IPC {
   }
   @SuppressWarnings("unchecked")
   private void write_array_dict(JFDictionary value) throws Exception {
+    write_int(-1);  //array size (patch later)
+    int array_offset = wpos - 4;
+    walign(8);
+    int array_start = wpos;
     Object[] keys = value.map.keySet().toArray(new String[0]);
-    write_int(keys.length);
     JFTuple tuple = new JFTuple(value.key_type, value.value_type);
     for(Object key : keys) {
       tuple.key = key;
       tuple.value = value.map.get(key);
       write_dict(tuple);
     }
+    //patch array size
+    int array_size = wpos - array_start;
+    LE.setuint32(wpkt, array_offset, array_size);
   }
   private void write_array_struct(JFArray[] value) throws Exception {
-    write_int(value.length);
+    write_int(-1);  //array size (patch later)
+    int array_offset = wpos - 4;
+    walign(8);
+    int array_start = wpos;
     for(JFArray arr : value) {
       write_struct(arr);
     }
+    //patch array size
+    int array_size = wpos - array_start;
+    LE.setuint32(wpkt, array_offset, array_size);
   }
   private void write_array_variant(JFVariant[] value) throws Exception {
-    write_int(value.length);
+    write_int(-1);  //array size (patch later)
+    int array_offset = wpos - 4;
+    //NOTE : Variants start with sign which has 1 byte alignment
+    int array_start = wpos;
     for(JFVariant arr : value) {
       write_variant(arr);
     }
+    //patch array size
+    int array_size = wpos - array_start;
+    LE.setuint32(wpkt, array_offset, array_size);
   }
 
   private void write_sign(char value) throws Exception {
@@ -1805,7 +1823,7 @@ public class DBus implements IPC {
       return struct;
     }
     @SuppressWarnings("unchecked")
-    private Object read_variant() throws Exception {
+    private JFVariant read_variant() throws Exception {
       String vartype = read_sign();
       if (debug) {
         JFLog.log("DBus.Variant.Type=" + vartype);
@@ -1926,7 +1944,9 @@ public class DBus implements IPC {
     private JFDictionary read_array_dict(String K, String V) throws Exception {
       JFDictionary dict = new JFDictionary<>(getType(K), getType(V));
       int len = read_int();
-      for(int idx=0;idx<len;idx++) {
+      ralign(8);
+      int end = rpos + len;
+      while (rpos < end) {
         //K = String
         Object key = read_args(K)[0];
         //V = Variant
@@ -1936,20 +1956,25 @@ public class DBus implements IPC {
       return dict;
     }
     private Object[] read_array_struct(String types) throws Exception {
-      int cnt = read_int();
-      JFArray[] vars = new JFArray[cnt];
-      for(int i=0;i<cnt;i++) {
-        vars[i] = read_struct(types);
+      int len = read_int();
+      ralign(8);
+      ArrayList<JFArray> list = new ArrayList<>();
+      int end = rpos + len;
+      while (rpos < end) {
+        JFArray arr = read_struct(types);
+        list.add(arr);
       }
-      return vars;
+      return list.toArray(new JFArray[0]);
     }
     private Object[] read_array_variant() throws Exception {
-      int cnt = read_int();
-      Object[] vars = new Object[cnt];
-      for(int i=0;i<cnt;i++) {
-        vars[i] = read_variant();
+      int len = read_int();
+      int end = rpos + len;
+      ArrayList<JFVariant> list = new ArrayList<>();
+      while (rpos < end) {
+        JFVariant v = (JFVariant)read_variant();
+        list.add(v);
       }
-      return vars;
+      return list.toArray(new JFVariant[0]);
     }
   }
 }
