@@ -1576,7 +1576,7 @@ public class DBus implements IPC {
     private Object[] read_args(String sign) throws Exception {
       //get args using signature and body
       if (debug) {
-        JFLog.log("read_args:" + sign);
+        JFLog.log("read_args:" + sign + "@" + rpos);
       }
       char[] types = sign.toCharArray();
       ArrayList<Object> args = new ArrayList<>();
@@ -1821,13 +1821,12 @@ public class DBus implements IPC {
     }
     private String read_String() throws Exception {
       int strlen = read_int();
+      int start = rpos - 4;
       rcheck(strlen + 1);  //+1 for null
       String str = new String(rpkt, rpos, strlen);
       rpos += strlen;
       rpos++;  //null
-      if (debug) {
-        JFLog.log("read_String:" + str);
-      }
+      if (debug) JFLog.log("read_String:" + str + "@" + start);
       return str;
     }
     @SuppressWarnings("unchecked")
@@ -1971,9 +1970,10 @@ public class DBus implements IPC {
     private JFDictionary read_array_dict(String K, String V) throws Exception {
       JFDictionary dict = new JFDictionary<>(getType(K), getType(V));
       int len = read_int();
+      int start = rpos - 4;
       ralign(8);
       int end = rpos + len;
-      if (debug) JFLog.log("read_array_dict{" + len);
+      if (debug) JFLog.log("read_array_dict{" + len + "@" + start);
       while (rpos < end) {
         //K = String
         Object key = read_args(K)[0];
@@ -1987,9 +1987,10 @@ public class DBus implements IPC {
     private Object[] read_array_struct(String types) throws Exception {
       ArrayList<JFArray> list = new ArrayList<>();
       int len = read_int();
+      int start = rpos - 4;
       ralign(8);
       int end = rpos + len;
-      if (debug) JFLog.log("read_array_struct(" + len);
+      if (debug) JFLog.log("read_array_struct(" + len + "@" + start);
       while (rpos < end) {
         JFArray arr = read_struct(types);
         list.add(arr);
@@ -2000,8 +2001,9 @@ public class DBus implements IPC {
     private Object[] read_array_variant() throws Exception {
       ArrayList<JFVariant> list = new ArrayList<>();
       int len = read_int();
+      int start = rpos - 4;
       int end = rpos + len;
-      if (debug) JFLog.log("read_array_variant<<" + len);
+      if (debug) JFLog.log("read_array_variant<<" + len + "@" + start);
       while (rpos < end) {
         JFVariant v = (JFVariant)read_variant();
         list.add(v);
