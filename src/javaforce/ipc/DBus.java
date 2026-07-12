@@ -724,6 +724,8 @@ public class DBus implements IPC {
         break;
       case TYPE_VARIANT:
         JFVariant v = (JFVariant)arg;
+        String vdt = getObjectType(v.value);
+        bodyLength += vdt.length();
         add_length(v.value);
         break;
       case TYPE_DICT:
@@ -1956,6 +1958,9 @@ public class DBus implements IPC {
     @SuppressWarnings("unchecked")
     private Object read_variant() throws Exception {
       String vartype = read_type();
+      if (debug) {
+        JFLog.log("DBus.Variant.Type=" + vartype);
+      }
       JFVariant v = new JFVariant(read_args(vartype)[0]);
       return v;
     }
