@@ -1852,10 +1852,9 @@ public class DBus implements IPC {
     @SuppressWarnings("unchecked")
     private JFVariant read_variant() throws Exception {
       String vartype = read_sign();
-      if (debug) {
-        JFLog.log("DBus.Variant.Type=" + vartype);
-      }
+      if (debug) JFLog.log("read_variant<" + vartype);
       JFVariant v = new JFVariant(read_args(vartype)[0]);
+      if (debug) JFLog.log(">");
       return v;
     }
     private byte[] read_array_byte() throws Exception {
@@ -1947,21 +1946,21 @@ public class DBus implements IPC {
       return data;
     }
     private String[] read_array_String() throws Exception {
+      ArrayList<String> array = new ArrayList<>();
       int len = read_int();
       rcheck(len);
-      ArrayList<String> array = new ArrayList<>();
-      while (len > 0) {
-        int start = rpos;
+      ralign(4);
+      int end = rpos + len;
+      if (debug) JFLog.log("read_array_String[" + len);
+      while (rpos < end) {
         array.add(read_String());
-        int end = rpos;
-        int strlen = end - start;  //element length
-        len -= strlen;
       }
+      if (debug) JFLog.log("]");
       return array.toArray(JF.StringArrayType);
     }
     private String read_sign() throws Exception {
       int strlen = read_byte() & 0xff;
-      if (strlen == 0) throw new Exception("DBus:Invalid zero-length sign @" + rpos);
+      if (strlen == 0) throw new Exception("DBus:Invalid zero-length sign @ " + rpos);
       rcheck(strlen + 1);  //+1 for null
       String str = new String(rpkt, rpos, strlen);
       rpos += strlen;
@@ -1974,6 +1973,7 @@ public class DBus implements IPC {
       int len = read_int();
       ralign(8);
       int end = rpos + len;
+      if (debug) JFLog.log("read_array_dict{" + len);
       while (rpos < end) {
         //K = String
         Object key = read_args(K)[0];
@@ -1981,27 +1981,32 @@ public class DBus implements IPC {
         Object value = read_args(V)[0];
         dict.map.put(key, value);
       }
+      if (debug) JFLog.log("}");
       return dict;
     }
     private Object[] read_array_struct(String types) throws Exception {
+      ArrayList<JFArray> list = new ArrayList<>();
       int len = read_int();
       ralign(8);
-      ArrayList<JFArray> list = new ArrayList<>();
       int end = rpos + len;
+      if (debug) JFLog.log("read_array_struct(" + len);
       while (rpos < end) {
         JFArray arr = read_struct(types);
         list.add(arr);
       }
+      if (debug) JFLog.log(")");
       return list.toArray(new JFArray[0]);
     }
     private Object[] read_array_variant() throws Exception {
+      ArrayList<JFVariant> list = new ArrayList<>();
       int len = read_int();
       int end = rpos + len;
-      ArrayList<JFVariant> list = new ArrayList<>();
+      if (debug) JFLog.log("read_array_variant<<" + len);
       while (rpos < end) {
         JFVariant v = (JFVariant)read_variant();
         list.add(v);
       }
+      if (debug) JFLog.log(">>");
       return list.toArray(new JFVariant[0]);
     }
   }
