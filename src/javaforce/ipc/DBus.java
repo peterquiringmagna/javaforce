@@ -1230,6 +1230,9 @@ public class DBus implements IPC {
         }
         rpos = 0;
         fields.clear();
+        if (debug) {
+          JFLog.log("packet.header=", rpkt, 0, 16);
+        }
         //header = yyyyuua(yv) : y=8bit u=32bit a=array v=variant (64bit)
         // y = endian : l or B
         // y = MSG_...
@@ -1292,6 +1295,9 @@ public class DBus implements IPC {
           }
           transport.reconnect();
           rpos = 0;
+          if (debug) {
+            JFLog.log("packet.fields+body=", rpkt, 0, rpkt_len);
+          }
           if (debug) {
             JFLog.log("msg:" + msg_names[msg_type]);
             JFLog.log("field_size=" + field_size);
