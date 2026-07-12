@@ -727,7 +727,7 @@ public class DBus implements IPC {
         add_length(v.value);
         break;
       case TYPE_DICT:
-        JFTuple<String,Object> tuple = (JFTuple<String, Object>)arg;
+        JFTuple tuple = (JFTuple)arg;
         add_length(tuple.key);
         add_length(tuple.value);
         break;
@@ -980,10 +980,15 @@ public class DBus implements IPC {
     wpkt[wpos++] = 0;  //null
   }
   private void write_variant(JFVariant value) throws Exception {
+    String dt = getObjectType(value.value);
+    int strlen = dt.length();
+    wcheck(strlen);
+    System.arraycopy(dt.getBytes(), 0, wpkt, wpos, strlen);
+    wpos += strlen;
     write_type(value.value);
   }
-  private void write_dict(JFTuple<String,Object> value) throws Exception {
-    write_String(value.key);
+  private void write_dict(JFTuple value) throws Exception {
+    write_type(value.key);
     write_type(value.value);
   }
   private void write_struct(JFArray value) throws Exception {
@@ -1066,11 +1071,12 @@ public class DBus implements IPC {
       write_String(b);
     }
   }
-  private void write_array_dict(JFDictionary<String,Object> value) throws Exception {
-    String[] keys = value.map.keySet().toArray(new String[0]);
+  @SuppressWarnings("unchecked")
+  private void write_array_dict(JFDictionary value) throws Exception {
+    Object[] keys = value.map.keySet().toArray(new String[0]);
     write_int(keys.length);
-    JFTuple<String, Object> tuple = new JFTuple<>(value.key_type, value.value_type);
-    for(String key : keys) {
+    JFTuple tuple = new JFTuple(value.key_type, value.value_type);
+    for(Object key : keys) {
       tuple.key = key;
       tuple.value = value.map.get(key);
       write_dict(tuple);
@@ -1148,7 +1154,7 @@ public class DBus implements IPC {
         write_variant((JFVariant)obj);
         break;
       case TYPE_DICT:
-        write_dict((JFTuple<String,Object>)obj);
+        write_dict((JFTuple)obj);
         break;
       case TYPE_STRUCT:
         write_struct((JFArray)obj);
@@ -1928,11 +1934,9 @@ public class DBus implements IPC {
       return str;
     }
     @SuppressWarnings("unchecked")
-    private JFTuple<String,Object> read_dict(String K, String V) throws Exception {
+    private JFTuple read_dict(String K, String V) throws Exception {
       JFTuple pair = new JFTuple(getType(K), getType(V));
-      //K = String
-      String key = (String)read_args(K)[0];
-      //V = Variant
+      Object key = read_args(K)[0];
       Object value = read_args(V)[0];
       pair.key = key;
       pair.value = value;
@@ -2063,7 +2067,7 @@ public class DBus implements IPC {
       return str;
     }
     @SuppressWarnings("unchecked")
-    private JFDictionary<String, Object> read_array_dict(String K, String V) throws Exception {
+    private JFDictionary read_array_dict(String K, String V) throws Exception {
       JFDictionary dict = new JFDictionary<>(getType(K), getType(V));
       int len = read_int();
       for(int idx=0;idx<len;idx++) {
@@ -2095,7 +2099,7 @@ public class DBus implements IPC {
       //read one complete type
       StringBuilder type = new StringBuilder();
       boolean dict = false;
-      boolean struct = false;
+      int depth = 0;
       do {
         char t = (char)read_byte();
         type.append(t);
@@ -2103,10 +2107,8 @@ public class DBus implements IPC {
           case TYPE_ARRAY: {
             continue;
           }
-          case TYPE_DICT: {
+          case TYPE_DICT_OPEN: {
             if (dict) throw new Exception("DBus:unexpected DICT within DICT");
-            char open = (char)read_byte();
-            if (!Character.toString(open).equals(TYPE_DICT_OPEN)) throw new Exception("DBus:expected DICT OPEN");
             dict = true;
             continue;
           }
@@ -2115,20 +2117,17 @@ public class DBus implements IPC {
             dict = false;
             break;
           }
-          case TYPE_STRUCT: {
-            if (struct) throw new Exception("DBus:unexpected STRUCT within STRUCT");
-            char open = (char)read_byte();
-            if (!Character.toString(open).equals(TYPE_STRUCT_OPEN)) throw new Exception("DBus:expected STRUCT OPEN");
-            struct = true;
+          case TYPE_STRUCT_OPEN: {
+            depth++;
             continue;
           }
           case TYPE_STRUCT_CLOSE: {
-            if (!struct) throw new Exception("DBus:unexpected STRUCT CLOSE");
-            struct = false;
+            if (depth == 0) throw new Exception("DBus:unexpected STRUCT CLOSE");
+            depth--;
             break;
           }
         }
-        if (!dict && !struct) break;
+        if (!dict && depth == 0) break;
       } while (true);
       return type.toString();
     }
