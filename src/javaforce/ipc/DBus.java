@@ -690,173 +690,6 @@ public class DBus implements IPC {
     bodyLength += pad;
   }
 
-  @SuppressWarnings("unchecked")
-  private void add_length(Object arg) {
-    String dt = getObjectType(arg);
-    switch (dt) {
-      case TYPE_UINT8:
-        bodyLength++;
-        break;
-      case TYPE_INT16:
-      case TYPE_UINT16:
-        balign(2);
-        bodyLength += 2;
-        break;
-      case TYPE_INT32:
-      case TYPE_UINT32:
-      case TYPE_BOOLEAN:  //only lsb used
-        balign(4);
-        bodyLength += 4;
-        break;
-      case TYPE_DOUBLE:
-      case TYPE_INT64:
-      case TYPE_UINT64:
-        balign(8);
-        bodyLength += 8;
-        break;
-      case TYPE_OBJECT_PATH:
-      case TYPE_STRING:
-        String value = (String)arg;
-        balign(4);
-        bodyLength += 4;  //length
-        bodyLength += value.length();  //UTF-8 bytes
-        bodyLength++;  //null
-        break;
-      case TYPE_VARIANT:
-        JFVariant v = (JFVariant)arg;
-        String vdt = getObjectType(v.value);
-        bodyLength++;  //length
-        bodyLength += vdt.length();
-        bodyLength++;  //null
-        add_length(v.value);
-        break;
-      case TYPE_DICT:
-        JFTuple tuple = (JFTuple)arg;
-        add_length(tuple.key);
-        add_length(tuple.value);
-        break;
-      case TYPE_STRUCT:
-        JFArray arr = (JFArray)arg;
-        Object[] objs = arr.toArray();
-        for(Object obj : objs) {
-          add_length(obj);
-        }
-        break;
-      case TYPE_ARRAY_UINT8:
-        byte[] d8 = (byte[])arg;
-        balign(4);
-        bodyLength += 4;  //length
-        bodyLength += d8.length;
-        break;
-      case TYPE_ARRAY_INT16:
-        short[] d16 = (short[])arg;
-        balign(4);
-        bodyLength += 4;  //length
-        bodyLength += (d16.length * 2);
-        break;
-      case TYPE_ARRAY_UINT16:
-        UShort[] u16 = (UShort[])arg;
-        balign(4);
-        bodyLength += 4;  //length
-        bodyLength += (u16.length * 2);
-        break;
-      case TYPE_ARRAY_INT32:
-        int[] d32 = (int[])arg;
-        balign(4);
-        bodyLength += 4;  //length
-        bodyLength += (d32.length * 4);
-        break;
-      case TYPE_ARRAY_UINT32:
-        UInteger[] u32 = (UInteger[])arg;
-        balign(4);
-        bodyLength += 4;  //length
-        bodyLength += (u32.length * 4);
-        break;
-      case TYPE_ARRAY_INT64:
-        long[] d64 = (long[])arg;
-        balign(4);
-        bodyLength += 4;  //length
-        balign(8);
-        bodyLength += (d64.length * 8);
-        break;
-      case TYPE_ARRAY_UINT64:
-        ULong[] u64 = (ULong[])arg;
-        balign(4);
-        bodyLength += 4;  //length
-        balign(8);
-        bodyLength += (u64.length * 8);
-        break;
-      case TYPE_ARRAY_DOUBLE:
-        double[] f64 = (double[])arg;
-        balign(4);
-        bodyLength += 4;  //length
-        balign(8);
-        bodyLength += (f64.length * 8);
-        break;
-      case TYPE_ARRAY_BOOLEAN:
-        boolean[] b32 = (boolean[])arg;
-        balign(4);
-        bodyLength += 4;  //length
-        bodyLength += (b32.length * 4);
-        break;
-      case TYPE_ARRAY_STRING:
-        String[] s32 = (String[])arg;
-        balign(4);
-        bodyLength += 4;  //length
-        for(int b=0;b<s32.length;b++) {
-          balign(4);
-          bodyLength += 4;  //length
-          bodyLength += s32[b].length();
-          bodyLength++;  //null
-        }
-        break;
-      case TYPE_ARRAY_DICT:
-        JFDictionary dict = (JFDictionary)arg;
-        Object[] keys = dict.map.keySet().toArray(new String[0]);
-        balign(4);
-        bodyLength += 4;  //length
-        for(Object key : keys) {
-          balign(8);
-          add_length(key);
-          add_length(dict.map.get(key));
-        }
-        break;
-      case TYPE_ARRAY_STRUCT:
-        JFArray[] structs = (JFArray[])arg;
-        balign(4);
-        bodyLength += 4;  //length
-        for(JFArray struct : structs) {
-          balign(8);
-          add_length(struct);
-        }
-        break;
-      case TYPE_ARRAY_VARIANT:
-        JFVariant[] vars = (JFVariant[])arg;
-        balign(4);
-        bodyLength += 4;  //length
-        for(JFVariant _var_ : vars) {
-          add_length(_var_);
-        }
-        break;
-      default:
-        JFLog.log("DBus:Error:Unknown type:" + arg.getClass());
-    }
-  }
-
-  /** Calculates size of body.
-   *
-   * Note : this method is already synced with write_msg()
-   */
-  private int args_length(Object[] args) {
-    int argsLength = args.length;
-    bodyLength = 0;
-    for (int a = 0; a < argsLength; a++) {
-      Object arg = args[a];
-      add_length(arg);
-    }
-    return bodyLength;
-  }
-
   /** Generates method signature. */
   private String gen_sign(Object[] args) {
     int argsLength = args.length;
@@ -1232,7 +1065,6 @@ public class DBus implements IPC {
     if (debug_msg) JFLog.log("DBus.invoke:" + dest + ":" + member + ":" + serial + ":" + serial_reply);
     synchronized (write_msg_lock) {
       boolean write_to_dbus = dest.equals(DBUS_MESSAGE_BUS);
-      int body_size = args_length(args);
       String sign = gen_sign(args);
       wpos = 0;
       if (args == null) args = new Object[0];
@@ -1243,16 +1075,16 @@ public class DBus implements IPC {
         write_byte((byte)0);  //flags
         write_byte((byte)1);  //major version
 
-        if (debug) JFLog.log("write.body_size=" + body_size);
-        write_int(body_size);
+        write_int(-1);  //body_size (patch later)
+        int body_offset = wpos - 4;
         if (debug) JFLog.log("write.serial=" + serial);
         write_int(serial);
 
         //write fields (DEST, METHOD, SIGNATURE, SENDER, [REPLY_SERIAL])
         //each field is a struct so it must be 8 byte aligned
-        write_int(-1);  //array size in bytes (excluding init padding)
-        int array_offset = wpos - 4;
-        int array_start = wpos;
+        write_int(-1);  //fields_size (patch later) (excluding padding before body)
+        int fields_offset = wpos - 4;
+        int fields_start = wpos;
         if (msg_type != MSG_RETURN) {
           //field:obj_path
           walign(8);
@@ -1305,18 +1137,29 @@ public class DBus implements IPC {
           write_sign(TYPE_UINT32);
           write_int(serial_reply);
         }
-        //patch array fields size (excluding end of header padding to 8 bytes)
-        int array_size = wpos - array_start;
+
+        //patch fields size (excluding end of header padding to 8 bytes)
+        int fields_size = wpos - fields_start;
         if (debug) {
-          JFLog.log("array_size=" + array_size);
+          JFLog.log("fields_size=" + fields_size);
         }
-        LE.setuint32(wpkt, array_offset, array_size);
+        LE.setuint32(wpkt, fields_offset, fields_size);
+
         walign(8);  //end of header padding to 8 bytes
 
         //write args (body)
+        int body_start = wpos;
         for(Object obj : args) {
           write_type(obj);
         }
+
+        //patch body size
+        int body_size = wpos - body_start;
+        if (debug) {
+          JFLog.log("body_size=" + body_size);
+        }
+        LE.setuint32(wpkt, body_offset, body_size);
+
         //write packet
         write(dest, wpkt, 0, wpos);
       } catch (Exception e) {
