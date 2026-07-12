@@ -725,7 +725,9 @@ public class DBus implements IPC {
       case TYPE_VARIANT:
         JFVariant v = (JFVariant)arg;
         String vdt = getObjectType(v.value);
+        bodyLength++;  //length
         bodyLength += vdt.length();
+        bodyLength++;  //null
         add_length(v.value);
         break;
       case TYPE_DICT:
@@ -983,13 +985,7 @@ public class DBus implements IPC {
   }
   private void write_variant(JFVariant value) throws Exception {
     String dt = getObjectType(value.value);
-    if (debug) {
-      JFLog.log("DBus.Variant.Type=" + dt);
-    }
-    int strlen = dt.length();
-    wcheck(strlen);
-    System.arraycopy(dt.getBytes(), 0, wpkt, wpos, strlen);
-    wpos += strlen;
+    write_sign(dt);
     write_type(value.value);
   }
   private void write_dict(JFTuple value) throws Exception {
@@ -1957,7 +1953,7 @@ public class DBus implements IPC {
     }
     @SuppressWarnings("unchecked")
     private Object read_variant() throws Exception {
-      String vartype = read_type();
+      String vartype = read_sign();
       if (debug) {
         JFLog.log("DBus.Variant.Type=" + vartype);
       }
@@ -2101,42 +2097,6 @@ public class DBus implements IPC {
         vars[i] = read_variant();
       }
       return vars;
-    }
-    private String read_type() throws Exception {
-      //read one complete type
-      StringBuilder type = new StringBuilder();
-      boolean dict = false;
-      int depth = 0;
-      do {
-        char t = (char)read_byte();
-        type.append(t);
-        switch (Character.toString(t)) {
-          case TYPE_ARRAY: {
-            continue;
-          }
-          case TYPE_DICT_OPEN: {
-            if (dict) throw new Exception("DBus:unexpected DICT within DICT");
-            dict = true;
-            continue;
-          }
-          case TYPE_DICT_CLOSE: {
-            if (!dict) throw new Exception("DBus:unexpected DICT CLOSE");
-            dict = false;
-            break;
-          }
-          case TYPE_STRUCT_OPEN: {
-            depth++;
-            continue;
-          }
-          case TYPE_STRUCT_CLOSE: {
-            if (depth == 0) throw new Exception("DBus:unexpected STRUCT CLOSE");
-            depth--;
-            break;
-          }
-        }
-        if (!dict && depth == 0) break;
-      } while (true);
-      return type.toString();
     }
   }
 }
