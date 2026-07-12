@@ -527,6 +527,7 @@ public class DBus implements IPC {
   private static class Invoke {
     public int serial;  //standard message identifier
     public String return_signal;  //return signal
+    public boolean nothing;
     public Object value;  //return value
     public Object error;  //return error
     public Object lock = new Object();  //timeout/notify lock
@@ -571,6 +572,9 @@ public class DBus implements IPC {
     if (invoke.error != null) {
       throw new Exception((String)invoke.error);
     } else {
+      if (invoke.nothing) {
+        return null;
+      }
       if (invoke.value == null) {
         throw new Exception("DBus.timeout");
       }
@@ -1474,13 +1478,20 @@ public class DBus implements IPC {
         }
       }
       if (debug_msg) JFLog.log("DBus.method_return:" + member + ":" + reply_serial);
-      Object[] args = read_args(sign);
+      Object[] args = null;
+      if (sign != null) {
+        args = read_args(sign);
+      }
       synchronized (invokes_lock) {
         switch (msg_type) {
           case MSG_RETURN: {
             for(Invoke invoke : invokes) {
               if (invoke.serial == reply_serial) {
-                invoke.value = args[0];
+                if (args == null) {
+                  invoke.nothing = true;
+                } else {
+                  invoke.value = args[0];
+                }
                 synchronized (invoke.lock) {
                   invoke.lock.notify();
                 }
@@ -1493,7 +1504,11 @@ public class DBus implements IPC {
             for(Invoke invoke : invokes) {
               if (invoke.return_signal == null) continue;
               if (invoke.return_signal.equals(member)) {
-                invoke.value = args[0];
+                if (args == null) {
+                  invoke.nothing = true;
+                } else {
+                  invoke.value = args[0];
+                }
                 synchronized (invoke.lock) {
                   invoke.lock.notify();
                 }
