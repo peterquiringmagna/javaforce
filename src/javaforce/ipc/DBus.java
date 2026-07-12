@@ -1825,6 +1825,9 @@ public class DBus implements IPC {
       String str = new String(rpkt, rpos, strlen);
       rpos += strlen;
       rpos++;  //null
+      if (debug) {
+        JFLog.log("read_String:" + str);
+      }
       return str;
     }
     @SuppressWarnings("unchecked")
