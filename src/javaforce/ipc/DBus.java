@@ -989,10 +989,12 @@ public class DBus implements IPC {
     write_type(value.value);
   }
   private void write_dict(JFTuple value) throws Exception {
+    walign(8);
     write_type(value.key);
     write_type(value.value);
   }
   private void write_struct(JFArray value) throws Exception {
+    walign(8);
     Object[] arr = value.toArray();
     for(Object obj : arr) {
       write_type(obj);
@@ -1936,6 +1938,7 @@ public class DBus implements IPC {
     }
     @SuppressWarnings("unchecked")
     private JFTuple read_dict(String K, String V) throws Exception {
+      ralign(8);
       JFTuple pair = new JFTuple(getType(K), getType(V));
       Object key = read_args(K)[0];
       Object value = read_args(V)[0];
@@ -1944,6 +1947,7 @@ public class DBus implements IPC {
       return pair;
     }
     private JFArray read_struct(String types) throws Exception {
+      ralign(8);
       if (!types.startsWith(TYPE_STRUCT_OPEN)) throw new Exception("DBus:expected STRUCT OPEN");
       if (!types.endsWith(TYPE_STRUCT_CLOSE)) throw new Exception("DBus:expected STRUCT CLOSE");
       Object[] arr = read_args(types.substring(1, types.length() - 1));
@@ -2075,7 +2079,7 @@ public class DBus implements IPC {
       int len = read_int();
       for(int idx=0;idx<len;idx++) {
         //K = String
-        String key = (String)read_args(K)[0];
+        Object key = read_args(K)[0];
         //V = Variant
         Object value = read_args(V)[0];
         dict.map.put(key, value);
