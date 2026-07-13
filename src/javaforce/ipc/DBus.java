@@ -1023,7 +1023,7 @@ public class DBus implements IPC {
         write_String((String)obj);
         break;
       case TYPE_OBJECT_PATH:
-        write_String((String)obj);
+        write_String(((JFObjectPath)obj).value);
         break;
       case TYPE_VARIANT:
         write_variant((JFVariant)obj);
@@ -1673,7 +1673,10 @@ public class DBus implements IPC {
             arg = (read_int() == 1);
             break;
           }
-          case TYPE_OBJECT_PATH:
+          case TYPE_OBJECT_PATH: {
+            arg = new JFObjectPath(read_String());
+            break;
+          }
           case TYPE_STRING: {
             arg = read_String();
             break;
