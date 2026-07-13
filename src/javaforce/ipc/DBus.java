@@ -161,6 +161,7 @@ public class DBus implements IPC {
   public static final String TYPE_ARRAY_DICT = "ae";
   public static final String TYPE_ARRAY_STRUCT = "ar";
   public static final String TYPE_ARRAY_VARIANT = "av";
+  public static final String TYPE_ARRAY_OBJECT_PATH = "ao";
 
   /** Returns DBus data type of obj. */
   public static String getObjectType(Object obj) {
@@ -1733,6 +1734,7 @@ public class DBus implements IPC {
             arg = read_array_boolean();
             break;
           }
+          case TYPE_ARRAY_OBJECT_PATH:
           case TYPE_ARRAY_STRING: {
             arg = read_array_String();
             break;
@@ -1770,7 +1772,7 @@ public class DBus implements IPC {
           }
           default: {
             arg = null;
-            JFLog.log("DBus:Error:Unsupported type:" + type);
+            JFLog.log("DBus:Error:Unsupported type:" + str);
             break;
           }
         }
