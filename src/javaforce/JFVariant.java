@@ -1,6 +1,10 @@
 package javaforce;
 
-/** JFVariant
+/** JFVariant.
+ *
+ * A DBus object.
+ *
+ * Variants can hold any type of DBus object.
  *
  * @author pquiring
  */

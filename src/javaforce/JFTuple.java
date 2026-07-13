@@ -1,6 +1,10 @@
 package javaforce;
 
-/** Key/Value Tuple
+/** Key/Value Tuple.
+ *
+ * A DBus object.
+ *
+ * Tuples are used to store one JFDictionary entry and are not supported by the DBus specification but are used internally.
  *
  * @author pquiring
  */

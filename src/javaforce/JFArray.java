@@ -5,6 +5,8 @@ import java.lang.reflect.*;
 
 /** JF Array generic.
  *
+ * A DBus object.
+ *
  * @author pquiring
  */
 

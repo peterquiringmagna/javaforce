@@ -4,6 +4,8 @@ import java.util.*;
 
 /** JFDictionary.
  *
+ * A DBus object.
+ * 
  * Internally a HashMap is used to store key/value pairs.
  *
  * @author pquiring

@@ -1,6 +1,8 @@
 package javaforce;
 
-/** Object Path
+/** Object Path.
+ *
+ * A DBus object.
  *
  * @author pquiring
  */
