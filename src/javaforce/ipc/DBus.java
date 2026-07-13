@@ -1771,8 +1771,8 @@ public class DBus implements IPC {
             String[] strs = read_array_String();
             JFObjectPath[] paths = new JFObjectPath[strs.length];
             int idx = 0;
-            for(String _str : strs) {
-              paths[idx++] = new JFObjectPath(str);
+            for(String o : strs) {
+              paths[idx++] = new JFObjectPath(o);
             }
             arg = paths;
             break;
