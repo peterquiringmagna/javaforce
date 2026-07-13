@@ -7,4 +7,8 @@ package javaforce;
 
 public class JFObjectPath {
   public String value;
+
+  public JFObjectPath(String value) {
+    this.value = value;
+  }
 }
