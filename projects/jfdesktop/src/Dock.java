@@ -16,7 +16,7 @@ import javaforce.*;
 import javaforce.awt.*;
 import javaforce.bus.*;
 import javaforce.linux.*;
-import javaforce.utils.*;
+import javaforce.net.*;
 import javaforce.io.*;
 
 import jffile.*;
@@ -72,6 +72,7 @@ public class Dock extends javax.swing.JWindow implements ActionListener, MouseLi
       if (config.autoHide) showDock();
       DesktopCache.buildCache();
       setupClockTimer();
+      setupWAPTimer();
       addMouseListener(this);
       addMouseListener(TrashPopup);
       addMouseListener(PowerPopup);
@@ -130,7 +131,7 @@ public class Dock extends javax.swing.JWindow implements ActionListener, MouseLi
         }
       }.start();
       initDockDND();
-      getWAPList();  //init WAP list (not used here)
+      wapList = getWAPList();
       JFLog.log("Dock init complete");
     } catch (Throwable t) {
       JFLog.log(t);
@@ -554,6 +555,7 @@ public class Dock extends javax.swing.JWindow implements ActionListener, MouseLi
   private java.util.Timer clockTimer;
   private java.util.Timer flashTimer;
   private java.util.Timer autoHideTimer;
+  private java.util.Timer wapTimer;
   private JPopupMenu NetworkPopup = new JPopupMenu();
   public static Dock dock;
   private long x11id;
@@ -1434,7 +1436,7 @@ public class Dock extends javax.swing.JWindow implements ActionListener, MouseLi
       }
       if (action.startsWith("#wap#")) {
         int idx = Integer.valueOf(action.substring(5));
-        WAP wap = wapItems.get(idx);
+        AccessPoint wap = wapItems.get(idx);
         connectWAP(wap.dev, wap.ssid, wap.encType);
         return;
       }
@@ -1521,55 +1523,46 @@ public class Dock extends javax.swing.JWindow implements ActionListener, MouseLi
   }
 
   private String vpnList = "";
-  private String wapList = "";
+  private JFDictionary wapList = null;
 
   private void showSettingsPopup() {
     ConfigPopup.show(config.compact ? settingsQuad : settingsHalf, 0, -calcMenuHeight(ConfigPopup));
   }
 
-  private String[] getWAPList() {
-    return (String[])jbusServer.invoke(SystemBusNames.network, "getWAPList");
+  public void setupWAPTimer() {
+    if (wapTimer != null) wapTimer.cancel();
+    wapTimer = new java.util.Timer();
+    wapTimer.schedule(new TimerTask() {
+      public void run() {wapList = getWAPList();}
+    } , 60000, 60000);
+  }
+
+  private JFDictionary getWAPList() {
+    return (JFDictionary)jbusServer.invoke(SystemBusNames.network, "getWAPList");
   }
 
   private String getVPNList() {
     return (String)jbusServer.invoke(SystemBusNames.network, "getVPNList");
   }
 
-  private static class WAP {
-    public String dev, ssid, encType;
-  }
-  ArrayList<WAP> wapItems = new ArrayList<WAP>();
+  ArrayList<AccessPoint> wapItems = new ArrayList<AccessPoint>();
 
+  @SuppressWarnings("unchecked")
   private void showNetworkPopup() {
+    if (wapList == null) return;
     NetworkPopup.removeAll();
     if (checkWireless()) {
       JMenu subWireless = new JMenu("Wireless");
       NetworkPopup.add(subWireless);
       //list wireless access points
-      String lns[] = wapList.split("[|]");
       boolean wapActive = false;
-      int idx = 0;
-      String dev = null;
       int cnt = 0;
       int w = 0;
       wapItems.clear();
-      while (idx < lns.length) {
-        if (cnt == 0) {
-          dev = lns[idx++];
-          cnt = JF.atoi(lns[idx++]);
-        }
-        if (cnt == 0) continue;
-        String ssid = lns[idx++];
-        String encType = lns[idx++];
-        WAP wap = new WAP();
-        if (ssid.endsWith(" *")) {
-          wapActive = true;
-        }
-        wap.dev = dev;
-        wap.ssid = ssid;
-        wap.encType = encType;
-        wapItems.add(wap);
-        JMenuItem w1 = new JMenuItem(ssid);
+      AccessPoint[] aps = AccessPoint.fromDictionary(wapList);
+      for(AccessPoint ap : aps) {
+        wapItems.add(ap);
+        JMenuItem w1 = new JMenuItem(ap.ssid);
         w1.setActionCommand("#wap#" + (w++));
         w1.addActionListener(this);
         addMouseListener(w1);
@@ -2870,10 +2863,6 @@ public class Dock extends javax.swing.JWindow implements ActionListener, MouseLi
           }
         }
       }.start();
-      return true;
-    }
-    public boolean setWAPList(String list) {
-      wapList = list;
       return true;
     }
     public boolean setVPNList(String list) {

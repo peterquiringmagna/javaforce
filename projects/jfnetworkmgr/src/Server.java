@@ -291,14 +291,14 @@ public class Server {
       return true;
     }
 //WIFI API
-    public String[] getWAPList() {
+    public JFDictionary getWAPList() {
       AccessPoint[] aps = wapList.toArray(new AccessPoint[0]);
       String[] list = new String[aps.length];
       int idx = 0;
       for(AccessPoint ap : aps) {
         list[idx++] = ap.ssid;
       }
-      return list;
+      return AccessPoint.toDictionary(aps);
     }
     public boolean connectWAP(String dev, String ssid, String encType, String key) {
       if (pendingWAP != null) return false;

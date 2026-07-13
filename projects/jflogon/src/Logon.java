@@ -16,6 +16,7 @@ import javaforce.*;
 import javaforce.awt.*;
 import javaforce.linux.*;
 import javaforce.bus.*;
+import javaforce.net.*;
 
 public class Logon extends javax.swing.JFrame implements ActionListener {
 
@@ -511,14 +512,14 @@ public class Logon extends javax.swing.JFrame implements ActionListener {
       connectVPN(action.substring(5));
     } else if (action.startsWith("#wap#")) {
       int idx = Integer.valueOf(action.substring(5));
-      WAP wap = wapItems.get(idx);
+      AccessPoint wap = wapItems.get(idx);
       connectWAP(wap.dev, wap.ssid, wap.encType);
     }
   }
 
-  private String wapList;
+  private String[] wapList;
   private String vpnList;
-  private String vpnList2[];
+  private String[] vpnList2;
 
   private boolean checkWireless() {
     ShellProcess sp = new ShellProcess();
@@ -532,17 +533,14 @@ public class Logon extends javax.swing.JFrame implements ActionListener {
   }
 
   private void getWAPList() {
-    String[] list = (String[])jbusServer.invoke(SystemBusNames.network, "getWAPList");
+    JFDictionary wapList = (JFDictionary)jbusServer.invoke(SystemBusNames.network, "getWAPList");
   }
 
   private void getVPNList() {
     String list = (String)jbusServer.invoke(SystemBusNames.network, "getVPNList");
   }
 
-  private static class WAP {
-    public String dev, ssid, encType;
-  }
-  ArrayList<WAP> wapItems = new ArrayList<WAP>();
+  ArrayList<AccessPoint> wapItems = new ArrayList<AccessPoint>();
 
   private void showNetworkPopup() {
     NetworkPopup.removeAll();
@@ -550,29 +548,19 @@ public class Logon extends javax.swing.JFrame implements ActionListener {
       JMenu subWireless = new JMenu("Wireless");
       NetworkPopup.add(subWireless);
       //list wireless access points
-      String lns[] = wapList.split("[|]");
       boolean wapActive = false;
-      int idx = 0;
       String dev = null;
       int cnt = 0;
       int w = 0;
       wapItems.clear();
-      while (idx < lns.length) {
-        if (cnt == 0) {
-          dev = lns[idx++];
-          cnt = JF.atoi(lns[idx++]);
-        }
-        if (cnt == 0) continue;
-        String ssid = lns[idx++];
-        String encType = lns[idx++];
-        WAP wap = new WAP();
-        wap.dev = dev;
-        wap.ssid = ssid;
-        wap.encType = encType;
-        wapItems.add(wap);
-        if (ssid.endsWith(" *")) {
-          wapActive = true;
-        }
+      for (String wap : wapList) {
+        AccessPoint ap = new AccessPoint();
+        String ssid = wap;
+//        String encType = ???
+//        ap.dev = dev;
+        ap.ssid = ssid;
+//        ap.encType = encType;
+        wapItems.add(ap);
         JMenuItem w1 = new JMenuItem(ssid);
         w1.setActionCommand("#wap#" + (w++));
         w1.addActionListener(this);
@@ -716,10 +704,6 @@ public class Logon extends javax.swing.JFrame implements ActionListener {
   }
 
   public class JBusMethods {
-    public boolean setWAPList(String list) {
-      wapList = list;
-      return true;
-    }
     public boolean setVPNList(String list) {
       vpnList = list;
       showNetworkPopup();
