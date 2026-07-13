@@ -210,6 +210,8 @@ public class DBus implements IPC {
       return TYPE_ARRAY_BOOLEAN;
     } else if (obj instanceof String[]) {
       return TYPE_ARRAY_STRING;
+    } else if (obj instanceof JFObjectPath[]) {
+      return TYPE_ARRAY_OBJECT_PATH;
     } else if (obj instanceof JFDictionary) {
       return TYPE_ARRAY_DICT;
     } else if (obj instanceof JFArray[]) {
@@ -267,6 +269,9 @@ public class DBus implements IPC {
     }
     if (cls == String[].class) {
       return TYPE_ARRAY_STRING;
+    }
+    if (cls == JFObjectPath[].class) {
+      return TYPE_ARRAY_OBJECT_PATH;
     }
     if (cls == JFVariant[].class) {
       return TYPE_ARRAY_VARIANT;
@@ -329,6 +334,8 @@ public class DBus implements IPC {
         return double[].class;
       case TYPE_ARRAY_STRING:
         return String[].class;
+      case TYPE_ARRAY_OBJECT_PATH:
+        return JFObjectPath[].class;
       case TYPE_ARRAY_VARIANT:
         return JFVariant[].class;
       case TYPE_ARRAY_DICT:
@@ -1074,6 +1081,15 @@ public class DBus implements IPC {
         String[] as = (String[])obj;
         write_array_String(as);
         break;
+      case TYPE_ARRAY_OBJECT_PATH:
+        JFObjectPath[] ao = (JFObjectPath[])obj;
+        String[] aostrs = new String[ao.length];
+        int idx = 0;
+        for(JFObjectPath o : ao) {
+          aostrs[idx++] = o.value;
+        }
+        write_array_String(aostrs);
+        break;
       case TYPE_ARRAY_DICT:
         write_array_dict((JFDictionary)obj);
         break;
@@ -1747,9 +1763,18 @@ public class DBus implements IPC {
             arg = read_array_boolean();
             break;
           }
-          case TYPE_ARRAY_OBJECT_PATH:
           case TYPE_ARRAY_STRING: {
             arg = read_array_String();
+            break;
+          }
+          case TYPE_ARRAY_OBJECT_PATH: {
+            String[] strs = read_array_String();
+            JFObjectPath[] paths = new JFObjectPath[strs.length];
+            int idx = 0;
+            for(String _str : strs) {
+              paths[idx++] = new JFObjectPath(str);
+            }
+            arg = paths;
             break;
           }
           case TYPE_ARRAY_DICT: {
