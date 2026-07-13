@@ -1573,22 +1573,56 @@ public class DBus implements IPC {
         }
       }
     }
-    private Object[] read_args(String sign) throws Exception {
+    private class Sign {
+      public char[] types;
+      public int idx;
+    }
+    private String read_type(Sign sign) throws Exception {
+      //read one complete type from Sign
+      StringBuilder sb = new StringBuilder();
+      boolean done = false;
+      int dict = 0;
+      int struct = 0;
+      do {
+        char type = sign.types[sign.idx++];
+        sb.append(type);
+        switch (Character.toString(type)) {
+          case TYPE_ARRAY:
+            continue;
+          case TYPE_DICT_OPEN:
+            dict++;
+          case TYPE_DICT_CLOSE:
+            if (dict == 0) throw new Exception("unexpected dict close");
+            dict--;
+          case TYPE_STRUCT_OPEN:
+            struct++;
+          case TYPE_STRUCT_CLOSE:
+            if (struct == 0) throw new Exception("unexpected struct close");
+            struct--;
+        }
+        if (dict == 0 && struct == 0) {
+          done = true;
+        }
+      } while (!done);
+      return sb.toString();
+    }
+    private Object[] read_args(String sign_str) throws Exception {
       //get args using signature and body
       if (debug) {
-        JFLog.log("read_args:" + sign + "@" + rpos);
+        JFLog.log("read_args:" + sign_str + "@" + rpos);
       }
-      char[] types = sign.toCharArray();
+      Sign sign = new Sign();
+      sign.types = sign_str.toCharArray();
+      sign.idx = 0;
       ArrayList<Object> args = new ArrayList<>();
       String str;
-      int idx = 0;
       String dict_key = null;
       String dict_value = null;
-      while (idx < types.length) {
-        char type = types[idx++];
+      while (sign.idx < sign.types.length) {
+        char type = sign.types[sign.idx++];
         str = Character.toString(type);
         if (str.equals(TYPE_ARRAY)) {
-          char array_type = types[idx++];
+          char array_type = sign.types[sign.idx++];
           switch (Character.toString(array_type)) {
             case TYPE_DICT_OPEN:
               array_type = TYPE_DICT.charAt(0);
@@ -1637,19 +1671,19 @@ public class DBus implements IPC {
             arg = read_variant();
             break;
           case TYPE_DICT: {
-            dict_key = Character.toString(types[idx++]);
-            dict_value = Character.toString(types[idx++]);
-            if (types[idx++] != TYPE_DICT_CLOSE.charAt(0)) throw new Exception("DBus:expected DICT CLOSE");
+            dict_key = read_type(sign);
+            dict_value = read_type(sign);
+            if (sign.types[sign.idx++] != TYPE_DICT_CLOSE.charAt(0)) throw new Exception("DBus:expected DICT CLOSE");
             arg = read_dict(dict_key, dict_value);
             break;
           }
           case TYPE_STRUCT: {
             StringBuilder struct_type = new StringBuilder();
             int depth = 1;
-            char _type = types[idx++];
+            char _type = sign.types[sign.idx++];
             struct_type.append(_type);
             do {
-              _type = types[idx++];
+              _type = sign.types[sign.idx++];
               struct_type.append(_type);
               switch (Character.toString(_type)) {
                 case TYPE_STRUCT_OPEN:
@@ -1704,19 +1738,19 @@ public class DBus implements IPC {
             break;
           }
           case TYPE_ARRAY_DICT: {
-            dict_key = Character.toString(types[idx++]);
-            dict_value = Character.toString(types[idx++]);
-            if (types[idx++] != TYPE_DICT_CLOSE.charAt(0)) throw new Exception("DBus:expected DICT CLOSE");
+            dict_key = read_type(sign);
+            dict_value = read_type(sign);
+            if (sign.types[sign.idx++] != TYPE_DICT_CLOSE.charAt(0)) throw new Exception("DBus:expected DICT CLOSE");
             arg = read_array_dict(dict_key, dict_value);
             break;
           }
           case TYPE_ARRAY_STRUCT: {
             StringBuilder struct_type = new StringBuilder();
             int depth = 1;
-            char _type = types[idx++];
+            char _type = sign.types[sign.idx++];
             struct_type.append(_type);
             do {
-              _type = types[idx++];
+              _type = sign.types[sign.idx++];
               struct_type.append(_type);
               switch (Character.toString(_type)) {
                 case TYPE_STRUCT_OPEN:
