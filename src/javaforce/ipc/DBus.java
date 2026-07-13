@@ -1971,10 +1971,10 @@ public class DBus implements IPC {
       JFDictionary dict = new JFDictionary<>(getType(K), getType(V));
       int len = read_int();
       int start = rpos - 4;
-      ralign(8);
       int end = rpos + len;
       if (debug) JFLog.log("read_array_dict{" + len + "@" + start);
       while (rpos < end) {
+        ralign(8);
         //K = String
         Object key = read_args(K)[0];
         //V = Variant
