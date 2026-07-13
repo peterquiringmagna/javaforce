@@ -17,16 +17,16 @@ import javaforce.net.*;
 import javaforce.linux.*;
 
 public class Server {
-  private String wapList = "";
+  private ArrayList<AccessPoint> wapList = new ArrayList<>();
   private Timer wapTimer;
 
   public VPNConnection pendingVPN;
-  public WAPConnection pendingWAP;
+  public AccessPoint pendingWAP;
 
   public static Server This;
   public JBusServer jbusServer;
-  public ArrayList<VPNConnection> vpnConnections = new ArrayList<VPNConnection>();
-  public ArrayList<WAPConnection> wapConnections = new ArrayList<WAPConnection>();
+  public ArrayList<VPNConnection> vpnConnections = new ArrayList<>();
+  public ArrayList<AccessPoint> wapConnections = new ArrayList<>();
 
   private static final boolean bluez3 = false;  //no longer available
 
@@ -124,15 +124,15 @@ public class Server {
   }
 
   private void getWAPList() {
-    String newWapList = "";
+    wapList.clear();
     String[] ifaces = listIFs();
     for(String iface : ifaces) {
       if (!iface.startsWith("w")) continue;
-      String[] output = NetworkControl.wifi_scan(iface);
-      newWapList += genWAPList(iface, output);
+      AccessPoint[] aps = NetworkControl.wifi_scan(iface);
+      for(AccessPoint ap : aps) {
+        wapList.add(ap);
+      }
     }
-    wapList = newWapList;
-    jbusServer.invoke(SystemBusNames.system, "broadcastWAPList", wapList);
   }
 
   private String genWAPList(String dev, String[] scan) {
@@ -291,25 +291,34 @@ public class Server {
       return true;
     }
 //WIFI API
-    public String getWAPList() {
-      return wapList;
+    public String[] getWAPList() {
+      AccessPoint[] aps = wapList.toArray(new AccessPoint[0]);
+      String[] list = new String[aps.length];
+      int idx = 0;
+      for(AccessPoint ap : aps) {
+        list[idx++] = ap.ssid;
+      }
+      return list;
     }
     public boolean connectWAP(String dev, String ssid, String encType, String key) {
       if (pendingWAP != null) return false;
-      WAPConnection wap = new WAPConnection();
-      wap.init(null,dev,ssid,encType,key);
+      AccessPoint wap = new AccessPoint();
+      wap.dev = dev;
+      wap.ssid = ssid;
+      wap.encType = encType;
+      wap.passwd = key;
       pendingWAP = wap;
-      wap.start();
+      WiFi wifi = new WiFi();
+      wifi.connect(wap);
       wapConnections.add(wap);
       return true;
     }
-    public boolean disconnectWAP(String pack, String dev) {
-      ShellProcess sp = new ShellProcess();
-      sp.run(new String[] {"iwconfig", dev, "essid", "any"}, false);
-      //stop wpa_supplicant if used
+    public boolean disconnectWAP(String dev) {
       for(int a=0;a<wapConnections.size();) {
-        if (wapConnections.get(a).dev.equals(dev)) {
-          wapConnections.get(a).close();
+        AccessPoint ap = wapConnections.get(a);
+        if (ap.dev.equals(dev)) {
+          WiFi wifi = new WiFi();
+          wifi.disconnect(ap);
           wapConnections.remove(a);
         } else {
           a++;
@@ -319,7 +328,7 @@ public class Server {
     }
     public boolean cancelWAP() {
       if (pendingWAP == null) return false;
-      pendingWAP.close();
+      //TODO : cancel connection ???
       pendingWAP = null;
       return true;
     }

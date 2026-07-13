@@ -6,11 +6,11 @@ package javaforce.net;
  */
 
 public class AccessPoint {
+  public String dev;
   public String ssid;
 
-  public AccessPoint(String ssid) {
-    this.ssid = ssid;
-  }
+  public String encType;
+  public String passwd;
 
   public String toString() {
     return "AccessPoint:" + ssid;

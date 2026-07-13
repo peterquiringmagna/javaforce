@@ -130,7 +130,7 @@ public class Dock extends javax.swing.JWindow implements ActionListener, MouseLi
         }
       }.start();
       initDockDND();
-      getWAPList();
+      getWAPList();  //init WAP list (not used here)
       JFLog.log("Dock init complete");
     } catch (Throwable t) {
       JFLog.log(t);
@@ -1527,8 +1527,8 @@ public class Dock extends javax.swing.JWindow implements ActionListener, MouseLi
     ConfigPopup.show(config.compact ? settingsQuad : settingsHalf, 0, -calcMenuHeight(ConfigPopup));
   }
 
-  private String getWAPList() {
-    return (String)jbusServer.invoke(SystemBusNames.network, "getWAPList");
+  private String[] getWAPList() {
+    return (String[])jbusServer.invoke(SystemBusNames.network, "getWAPList");
   }
 
   private String getVPNList() {

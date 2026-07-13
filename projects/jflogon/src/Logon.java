@@ -532,7 +532,7 @@ public class Logon extends javax.swing.JFrame implements ActionListener {
   }
 
   private void getWAPList() {
-    String list = (String)jbusServer.invoke(SystemBusNames.network, "getWAPList");
+    String[] list = (String[])jbusServer.invoke(SystemBusNames.network, "getWAPList");
   }
 
   private void getVPNList() {

@@ -78,11 +78,9 @@ public class NetworkControl {
     return sp.getErrorLevel() == 0;
   }
   /** Wireless scan for SSIDs. */
-  public static String[] wifi_scan(String dev) {
-    ShellProcess sp = new ShellProcess();
-    String output = sp.run(new String[] {"/usr/bin/iwlist", dev, "scan"}, true);
-    JFLog.log(logid, output);
-    return output.split("\n");
+  public static AccessPoint[] wifi_scan(String dev) {
+    WiFi wifi = new WiFi();
+    return wifi.scan(dev);
   }
   /** Set wireless SSID. */
   public static boolean wifi_set_ssid(String dev, String ssid) {

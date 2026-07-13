@@ -83,6 +83,9 @@ public class WiFi {
     return iface_path.value;
   }
 
+  /** Scan available AccessPoints on wireless device.
+   * @param dev = wireless device
+   */
   @SuppressWarnings("unchecked")
   public AccessPoint[] scan(String dev) {
     if (!dbus_connect()) return null;
@@ -116,7 +119,10 @@ public class WiFi {
                 JFVariant SSID = (JFVariant)bss_dict.map.get(bss_keys[bidx]);
                 String ssid = new String((byte[])SSID.value);
                 if (debug) JFLog.log("SSID=" + ssid);
-                list.add(new AccessPoint(ssid));
+                AccessPoint ap = new AccessPoint();
+                ap.ssid = ssid;
+                ap.dev = dev;
+                list.add(ap);
               }
             }
           }
@@ -132,15 +138,18 @@ public class WiFi {
     }
   }
 
-  public boolean connect(String dev, String ssid, String passwd) {
+  /** Connect to AccessPoint.
+   * @param ap = Access Point
+   */
+  public boolean connect(AccessPoint ap) {
     if (!dbus_connect()) return false;
     try {
       //get iface_path
-      String iface_path = getInterface(dev);
+      String iface_path = getInterface(ap.dev);
       //AddNetwork
       JFDictionary<String, JFVariant> args = new JFDictionary<>(String.class, JFVariant.class);  //TYPE_ARRAY_DICT
-      args.map.put("ssid", new JFVariant<String>(ssid));
-      args.map.put("psk", new JFVariant<String>(passwd));
+      args.map.put("ssid", new JFVariant<String>(ap.ssid));
+      args.map.put("psk", new JFVariant<String>(ap.passwd));
       args.map.put("key_mgmt", new JFVariant<String>("WPA-PSK"));
       JFObjectPath network_path = (JFObjectPath)dbus.invoke(WPAS_DBUS_SERVICE, iface_path, WPAS_DBUS_IFACE_INTERFACE, "AddNetwork", args);
       //SelectNetwork
@@ -155,11 +164,14 @@ public class WiFi {
     return false;
   }
 
-  public boolean disconnect(String dev) {
+  /** Disconnect from AccessPoint.
+   * @param ap = Access Point
+   */
+  public boolean disconnect(AccessPoint ap) {
     if (!dbus_connect()) return false;
     try {
       //get iface_path
-      String iface_path = getInterface(dev);
+      String iface_path = getInterface(ap.dev);
       //Disconnect
       String result = (String)dbus.invoke(WPAS_DBUS_SERVICE, iface_path, WPAS_DBUS_IFACE_INTERFACE, "Disconnect");
       //TODO : confirm action
@@ -179,7 +191,7 @@ public class WiFi {
     }
     WiFi wifi = new WiFi();
     switch (args[0]) {
-      case "scan":
+      case "scan": {
         if (args.length < 2) {
           JFLog.log("Usage : Wifi scan {device}");
           return;
@@ -189,20 +201,29 @@ public class WiFi {
           JFLog.log("AccessPoint:" + ap);
         }
         break;
-      case "connect":
+      }
+      case "connect": {
         if (args.length < 4) {
           JFLog.log("Usage : Wifi connect {device} {ssid} {password}");
           return;
         }
-        wifi.connect(args[1], args[2], args[3]);
+        AccessPoint ap = new AccessPoint();
+        ap.dev = args[1];
+        ap.ssid = args[2];
+        ap.passwd = args[3];
+        wifi.connect(ap);
         break;
-      case "disconnect":
+      }
+      case "disconnect": {
         if (args.length < 2) {
           JFLog.log("Usage : Wifi disconnect {device}");
           return;
         }
-        wifi.disconnect(args[1]);
+        AccessPoint ap = new AccessPoint();
+        ap.dev = args[1];
+        wifi.disconnect(ap);
         break;
+      }
     }
   }
 }
