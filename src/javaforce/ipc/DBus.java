@@ -182,6 +182,8 @@ public class DBus implements IPC {
       return TYPE_BOOLEAN;
     } else if (obj instanceof String) {
       return TYPE_STRING;
+    } else if (obj instanceof JFObjectPath) {
+      return TYPE_OBJECT_PATH;
     } else if (obj instanceof JFVariant) {
       return TYPE_VARIANT;
     } else if (obj instanceof JFTuple) {
@@ -251,6 +253,9 @@ public class DBus implements IPC {
     if (cls == String.class) {
       return TYPE_STRING;
     }
+    if (cls == JFObjectPath.class) {
+      return TYPE_OBJECT_PATH;
+    }
     if (cls == JFVariant.class) {
       return TYPE_VARIANT;
     }
@@ -298,6 +303,8 @@ public class DBus implements IPC {
         return Boolean.class;
       case TYPE_STRING:
         return String.class;
+      case TYPE_OBJECT_PATH:
+        return JFObjectPath.class;
       case TYPE_VARIANT:
         return JFVariant.class;
       case TYPE_DICT:
@@ -1013,6 +1020,9 @@ public class DBus implements IPC {
         write_boolean((boolean)obj);
         break;
       case TYPE_STRING:
+        write_String((String)obj);
+        break;
+      case TYPE_OBJECT_PATH:
         write_String((String)obj);
         break;
       case TYPE_VARIANT:
