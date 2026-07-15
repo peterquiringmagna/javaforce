@@ -14,13 +14,19 @@ import javaforce.ipc.transport.*;
  *  - signals (broadcasting method to all subscribed clients)
  *
  * Supported Data Types:
- *  - java.lang.Byte
- *  - java.lang.Short
- *  - java.lang.Integer
- *  - java.lang.Long
- *  - java.lang.Double
- *  - java.lang.Boolean
- *  - java.lang.String
+ *  - byte
+ *  - short
+ *  - int
+ *  - long
+ *  - double
+ *  - boolean
+ *  - String
+ *  - javaforce.UShort
+ *  - javaforce.UInteger
+ *  - javaforce.ULong
+ *  - dictionary entry (JFTuple&lt;String,Object&gt;)
+ *  - struct (JFArray)
+ *  - variant (JFVariant)
  *  - byte[]
  *  - short[]
  *  - int[]
@@ -28,12 +34,9 @@ import javaforce.ipc.transport.*;
  *  - double[]
  *  - boolean[]
  *  - String[]
- *  - javaforce.UShort (invoke only) (primitive type is 'short')
- *  - javaforce.UInteger (invoke only) (primitive type is 'int')
- *  - javaforce.ULong (invoke only) (primitive type is 'long')
- *  - dictionary entry (JFTuple&lt;String,Object&gt;)
- *  - struct (JFArray)
- *  - variant (JFVariant)
+ *  - javaforce.UShort[]
+ *  - javaforce.UInteger[]
+ *  - javaforce.ULong[]
  *  - array of dictionary entries (JFDictionary)
  *  - array of struct (JFArray[])
  *  - array of variant (JFVariant[])
@@ -73,8 +76,22 @@ public class DBus implements IPC {
     public byte type;
     public String sign;
     public Object value;  //variant
+    public int idx = -1;  //value index in rpkt
     public String toString() {
       return field_names[type] + "=" + value;
+    }
+  }
+  private static class Index {
+    public int idx;
+  }
+  private static class Type extends Index {
+    public int length;
+
+    public Type clone() {
+      Type c = new Type();
+      c.idx = idx;
+      c.length = length;
+      return c;
     }
   }
 
@@ -117,7 +134,7 @@ public class DBus implements IPC {
     "FD"
   };
 
-  //Data Types (only small subset supported)
+  //Data Types
   public static final String TYPE_UINT8 = "y";
 
   public static final String TYPE_INT16 = "n";
@@ -162,6 +179,32 @@ public class DBus implements IPC {
   public static final String TYPE_ARRAY_STRUCT = "ar";
   public static final String TYPE_ARRAY_VARIANT = "av";
   public static final String TYPE_ARRAY_OBJECT_PATH = "ao";
+
+  public static final byte TYPE__UINT8 = 'y';
+
+  public static final byte TYPE__INT16 = 'n';
+  public static final byte TYPE__UINT16 = 'q';
+
+  public static final byte TYPE__INT32 = 'i';
+  public static final byte TYPE__UINT32 = 'u';
+
+  public static final byte TYPE__INT64 = 'x';
+  public static final byte TYPE__UINT64 = 't';
+
+  public static final byte TYPE__DOUBLE = 'd';
+  public static final byte TYPE__BOOLEAN = 'b';
+  public static final byte TYPE__byte = 's';
+  public static final byte TYPE__ARRAY = 'a';
+  public static final byte TYPE__STRUCT = 'r';
+  public static final byte TYPE__STRUCT_OPEN = '(';
+  public static final byte TYPE__STRUCT_CLOSE = ')';
+  public static final byte TYPE__DICT = 'e';  //illegal : must use TYPE__ARRAY_DICT
+  public static final byte TYPE__DICT_OPEN = '{';
+  public static final byte TYPE__DICT_CLOSE = '}';
+  public static final byte TYPE__VARIANT = 'v';
+  public static final byte TYPE__OBJECT_PATH = 'o';
+  public static final byte TYPE__SIGNATURE = 'g';
+  public static final byte TYPE__FD = 'h';
 
   /** Returns DBus data type of obj. */
   public static String getObjectType(Object obj) {
@@ -1363,6 +1406,8 @@ public class DBus implements IPC {
                 if (!field.sign.equals("g")) {
                   throw new Exception("field:mismatch type:g != " + field.sign);
                 }
+                if (debug) JFLog.log("field.sign@" + rpos);
+                field.idx = rpos;
                 field.value = read_sign();
                 break;
               case FIELD_REPLY_SERIAL:
@@ -1405,7 +1450,7 @@ public class DBus implements IPC {
       String path = null;
       String sender = null;
       String member = null;
-      String sign = "";
+      int signidx = -1;
       int cnt = fields.size();
       for(int a=0;a<cnt;a++) {
         Field field = fields.get(a);
@@ -1417,7 +1462,7 @@ public class DBus implements IPC {
             path = (String)field.value;
             break;
           case FIELD_SIGNATURE:
-            sign = (String)field.value;
+            signidx = field.idx;
             break;
           case FIELD_SENDER:
             sender = (String)field.value;
@@ -1430,7 +1475,14 @@ public class DBus implements IPC {
       }
       if (debug_msg) JFLog.log("DBus.method_call:" + member);
       //get args using signature and body
-      Object[] args = read_args(sign);
+      Object[] args = null;
+      if (signidx != -1) {
+        Index idx = new Index();
+        idx.idx = signidx + 1;
+        args = read_args(idx);
+      } else {
+        args = new Object[0];
+      }
       try {
         if (isSignalRequest(member, args)) {
           String signal = (String)args[0];
@@ -1449,11 +1501,12 @@ public class DBus implements IPC {
           String _member = member;
           String _sender = sender;
           int _msg_serial = msg_serial;  //field value may change with next inbound msg
+          Object[] _args = args;
           queue.add(
             new Runnable() {
               public void run() {
                 try {
-                  Object ret = ep.dispatch(_member, args);
+                  Object ret = ep.dispatch(_member, _args);
                   if (ret == null) throw new Exception("null");
                   write_msg(MSG_RETURN, _sender, nextSerial(), _msg_serial, _member, new Object[] {ret});
                 } catch (Exception e) {
@@ -1481,7 +1534,7 @@ public class DBus implements IPC {
       String path = null;
       String sender = null;
       String member = null;
-      String sign = null;
+      int signidx = -1;
       int reply_serial = -1;
       int cnt = fields.size();
       for(int a=0;a<cnt;a++) {
@@ -1494,7 +1547,7 @@ public class DBus implements IPC {
             path = (String)field.value;
             break;
           case FIELD_SIGNATURE:
-            sign = (String)field.value;
+            signidx = field.idx;
             break;
           case FIELD_SENDER:
             sender = (String)field.value;
@@ -1506,8 +1559,10 @@ public class DBus implements IPC {
       }
       if (debug_msg) JFLog.log("DBus.method_return:" + member + ":" + reply_serial);
       Object[] args = null;
-      if (sign != null) {
-        args = read_args(sign);
+      if (signidx != -1) {
+        Index idx = new Index();
+        idx.idx = signidx + 1;
+        args = read_args(idx);
       }
       synchronized (invokes_lock) {
         switch (msg_type) {
@@ -1552,7 +1607,7 @@ public class DBus implements IPC {
       String path = null;
       String sender = null;
       String member = null;
-      String sign = null;
+      int signidx = -1;
       String error = null;
       int reply_serial = -1;
       int cnt = fields.size();
@@ -1569,7 +1624,7 @@ public class DBus implements IPC {
             path = (String)field.value;
             break;
           case FIELD_SIGNATURE:
-            sign = (String)field.value;
+            signidx = field.idx;
             break;
           case FIELD_SENDER:
             sender = (String)field.value;
@@ -1581,8 +1636,10 @@ public class DBus implements IPC {
       }
       if (debug_msg) JFLog.log("DBus.method_error:" + member + ":" + reply_serial);
       Object[] args = null;
-      if (sign != null) {
-        args = read_args(sign);
+      if (signidx != -1) {
+        Index idx = new Index();
+        idx.idx = signidx + 1;
+        args = read_args(idx);
       } else if (error != null) {
         args = new String[] {error};
       } else {
@@ -1600,30 +1657,28 @@ public class DBus implements IPC {
         }
       }
     }
-    private class Sign {
-      public char[] types;
-      public int idx;
-    }
-    private String read_type(Sign sign) throws Exception {
+    private Type read_type(Index sign) throws Exception {
       //read one complete type from Sign
-      StringBuilder sb = new StringBuilder();
+      Type stype = new Type();
+      stype.idx = sign.idx;
+      stype.length = 0;
       boolean done = false;
       int dict = 0;
       int struct = 0;
       do {
-        char type = sign.types[sign.idx++];
-        sb.append(type);
-        switch (Character.toString(type)) {
-          case TYPE_ARRAY:
+        byte type = rpkt[sign.idx++];
+        stype.length++;
+        switch (type) {
+          case TYPE__ARRAY:
             continue;
-          case TYPE_DICT_OPEN:
+          case TYPE__DICT_OPEN:
             dict++;
-          case TYPE_DICT_CLOSE:
+          case TYPE__DICT_CLOSE:
             if (dict == 0) throw new Exception("unexpected dict close");
             dict--;
-          case TYPE_STRUCT_OPEN:
+          case TYPE__STRUCT_OPEN:
             struct++;
-          case TYPE_STRUCT_CLOSE:
+          case TYPE__STRUCT_CLOSE:
             if (struct == 0) throw new Exception("unexpected struct close");
             struct--;
         }
@@ -1631,192 +1686,208 @@ public class DBus implements IPC {
           done = true;
         }
       } while (!done);
-      return sb.toString();
+      return stype;
     }
-    private Object[] read_args(String sign_str) throws Exception {
+    private Object[] read_args(Index sign) throws Exception {
       //get args using signature and body
-      if (debug) {
-        JFLog.log("read_args:" + sign_str + "@" + rpos);
+      int start = sign.idx;
+      int end = start;
+      while (rpkt[end] != 0) {
+        end++;
       }
-      Sign sign = new Sign();
-      sign.types = sign_str.toCharArray();
-      sign.idx = 0;
+      if (debug) {
+        String str = new String(rpkt, start, end - start);
+        JFLog.log("read_args:sign=" + str + "@" + start + ":body=" + rpos);
+      }
       ArrayList<Object> args = new ArrayList<>();
-      String str;
-      String dict_key = null;
-      String dict_value = null;
-      while (sign.idx < sign.types.length) {
-        char type = sign.types[sign.idx++];
-        str = Character.toString(type);
-        if (str.equals(TYPE_ARRAY)) {
-          char array_type = sign.types[sign.idx++];
-          switch (Character.toString(array_type)) {
-            case TYPE_DICT_OPEN:
-              array_type = TYPE_DICT.charAt(0);
-              break;
-            case TYPE_STRUCT_OPEN:
-              array_type = TYPE_STRUCT.charAt(0);
-              break;
-          }
-          str += array_type;
-        }
-        Object arg;
-        switch (str) {
-          case TYPE_UINT8: {
-            arg = read_byte();
-            break;
-          }
-          case TYPE_UINT16:
-          case TYPE_INT16: {
-            arg = read_short();
-            break;
-          }
-          case TYPE_UINT32:
-          case TYPE_INT32: {
-            arg = read_int();
-            break;
-          }
-          case TYPE_UINT64:
-          case TYPE_INT64: {
-            arg = read_long();
-            break;
-          }
-          case TYPE_DOUBLE: {
-            arg = read_double();
-            break;
-          }
-          case TYPE_BOOLEAN: {
-            arg = (read_int() == 1);
-            break;
-          }
-          case TYPE_OBJECT_PATH: {
-            arg = new JFObjectPath(read_String());
-            break;
-          }
-          case TYPE_STRING: {
-            arg = read_String();
-            break;
-          }
-          case TYPE_VARIANT:
-            arg = read_variant();
-            break;
-          case TYPE_DICT: {
-            dict_key = read_type(sign);
-            dict_value = read_type(sign);
-            if (sign.types[sign.idx++] != TYPE_DICT_CLOSE.charAt(0)) throw new Exception("DBus:expected DICT CLOSE");
-            arg = read_dict(dict_key, dict_value);
-            break;
-          }
-          case TYPE_STRUCT: {
-            StringBuilder struct_type = new StringBuilder();
-            int depth = 1;
-            char _type = sign.types[sign.idx++];
-            struct_type.append(_type);
-            do {
-              _type = sign.types[sign.idx++];
-              struct_type.append(_type);
-              switch (Character.toString(_type)) {
-                case TYPE_STRUCT_OPEN:
-                  depth++;
-                  break;
-                case TYPE_STRUCT_CLOSE:
-                  depth--;
-                  break;
-              }
-            } while (depth > 0);
-            arg = (JFArray)read_struct(struct_type.toString());
-            break;
-          }
-          case TYPE_ARRAY_UINT8: {
-            arg = read_array_byte();
-            break;
-          }
-          case TYPE_ARRAY_INT16: {
-            arg = read_array_short();
-            break;
-          }
-          case TYPE_ARRAY_UINT16: {
-            arg = read_array_ushort();
-            break;
-          }
-          case TYPE_ARRAY_INT32: {
-            arg = read_array_int();
-            break;
-          }
-          case TYPE_ARRAY_UINT32: {
-            arg = read_array_uint();
-            break;
-          }
-          case TYPE_ARRAY_INT64: {
-            arg = read_array_long();
-            break;
-          }
-          case TYPE_ARRAY_UINT64: {
-            arg = read_array_ulong();
-            break;
-          }
-          case TYPE_ARRAY_DOUBLE: {
-            arg = read_array_double();
-            break;
-          }
-          case TYPE_ARRAY_BOOLEAN: {
-            arg = read_array_boolean();
-            break;
-          }
-          case TYPE_ARRAY_STRING: {
-            arg = read_array_String();
-            break;
-          }
-          case TYPE_ARRAY_OBJECT_PATH: {
-            String[] strs = read_array_String();
-            JFObjectPath[] paths = new JFObjectPath[strs.length];
-            int idx = 0;
-            for(String o : strs) {
-              paths[idx++] = new JFObjectPath(o);
-            }
-            arg = paths;
-            break;
-          }
-          case TYPE_ARRAY_DICT: {
-            dict_key = read_type(sign);
-            dict_value = read_type(sign);
-            if (sign.types[sign.idx++] != TYPE_DICT_CLOSE.charAt(0)) throw new Exception("DBus:expected DICT CLOSE");
-            arg = read_array_dict(dict_key, dict_value);
-            break;
-          }
-          case TYPE_ARRAY_STRUCT: {
-            StringBuilder struct_type = new StringBuilder();
-            int depth = 1;
-            char _type = sign.types[sign.idx++];
-            struct_type.append(_type);
-            do {
-              _type = sign.types[sign.idx++];
-              struct_type.append(_type);
-              switch (Character.toString(_type)) {
-                case TYPE_STRUCT_OPEN:
-                  depth++;
-                  break;
-                case TYPE_STRUCT_CLOSE:
-                  depth--;
-                  break;
-              }
-            } while (depth > 0);
-            arg = read_array_struct(struct_type.toString());
-            break;
-          }
-          case TYPE_ARRAY_VARIANT: {
-            arg = read_array_variant();
-            break;
-          }
-          default: {
-            arg = null;
-            JFLog.log("DBus:Error:Unsupported type:" + str);
-            break;
-          }
-        }
-        args.add(arg);
+      while (rpkt[sign.idx] != 0) {
+        Object obj = read_arg(sign);
+        args.add(obj);
       }
       return args.toArray();
+    }
+    private Object read_arg(Index sign) throws Exception {
+      int start = sign.idx;
+      Type dict_key = null;
+      Type dict_value = null;
+      byte type = rpkt[sign.idx++];
+      StringBuilder typestr = new StringBuilder();
+      typestr.append((char)type);
+      if (type == TYPE__ARRAY) {
+        type = rpkt[sign.idx++];
+        switch (type) {
+          case TYPE__DICT_OPEN:
+            type = TYPE__DICT;
+            break;
+          case TYPE__STRUCT_OPEN:
+            type = TYPE__STRUCT;
+            break;
+          case 0:
+            throw new Exception("DBus:read_arg():invalid sign");
+        }
+        typestr.append((char)type);
+      }
+      String str = typestr.toString();
+      if (debug) JFLog.log("read_arg:sign=" + str + "@" + start + ":body=" + rpos);
+      if (str.length() == 0) throw new Exception("DBus:read_arg():error:zero length sign");
+      Object arg;
+      switch (str) {
+        case TYPE_UINT8: {
+          arg = read_byte();
+          break;
+        }
+        case TYPE_UINT16:
+        case TYPE_INT16: {
+          arg = read_short();
+          break;
+        }
+        case TYPE_UINT32:
+        case TYPE_INT32: {
+          arg = read_int();
+          break;
+        }
+        case TYPE_UINT64:
+        case TYPE_INT64: {
+          arg = read_long();
+          break;
+        }
+        case TYPE_DOUBLE: {
+          arg = read_double();
+          break;
+        }
+        case TYPE_BOOLEAN: {
+          arg = (read_int() == 1);
+          break;
+        }
+        case TYPE_OBJECT_PATH: {
+          arg = new JFObjectPath(read_String());
+          break;
+        }
+        case TYPE_STRING: {
+          arg = read_String();
+          break;
+        }
+        case TYPE_VARIANT:
+          arg = read_variant();
+          break;
+        case TYPE_DICT: {
+          dict_key = read_type(sign);
+          dict_value = read_type(sign);
+          if (rpkt[sign.idx++] != TYPE_DICT_CLOSE.charAt(0)) throw new Exception("DBus:expected DICT CLOSE");
+          arg = read_dict(dict_key, dict_value);
+          break;
+        }
+        case TYPE_STRUCT: {
+          int struct_start = sign.idx;
+          int depth = 1;
+          byte _type = rpkt[sign.idx++];
+          do {
+            _type = rpkt[sign.idx++];
+            switch (_type) {
+              case TYPE__STRUCT_OPEN:
+                depth++;
+                break;
+              case TYPE__STRUCT_CLOSE:
+                depth--;
+                break;
+            }
+          } while (depth > 0);
+          int struct_end = sign.idx - 1;
+          rpkt[struct_end] = 0;
+          arg = (JFArray)read_struct(struct_start);
+          rpkt[struct_end] = ')';
+          break;
+        }
+        case TYPE_ARRAY_UINT8: {
+          arg = read_array_byte();
+          break;
+        }
+        case TYPE_ARRAY_INT16: {
+          arg = read_array_short();
+          break;
+        }
+        case TYPE_ARRAY_UINT16: {
+          arg = read_array_ushort();
+          break;
+        }
+        case TYPE_ARRAY_INT32: {
+          arg = read_array_int();
+          break;
+        }
+        case TYPE_ARRAY_UINT32: {
+          arg = read_array_uint();
+          break;
+        }
+        case TYPE_ARRAY_INT64: {
+          arg = read_array_long();
+          break;
+        }
+        case TYPE_ARRAY_UINT64: {
+          arg = read_array_ulong();
+          break;
+        }
+        case TYPE_ARRAY_DOUBLE: {
+          arg = read_array_double();
+          break;
+        }
+        case TYPE_ARRAY_BOOLEAN: {
+          arg = read_array_boolean();
+          break;
+        }
+        case TYPE_ARRAY_STRING: {
+          arg = read_array_String();
+          break;
+        }
+        case TYPE_ARRAY_OBJECT_PATH: {
+          String[] strs = read_array_String();
+          JFObjectPath[] paths = new JFObjectPath[strs.length];
+          int idx = 0;
+          for(String o : strs) {
+            paths[idx++] = new JFObjectPath(o);
+          }
+          arg = paths;
+          break;
+        }
+        case TYPE_ARRAY_DICT: {
+          dict_key = read_type(sign);
+          dict_value = read_type(sign);
+          if (rpkt[sign.idx++] != TYPE_DICT_CLOSE.charAt(0)) throw new Exception("DBus:expected DICT CLOSE");
+          arg = read_array_dict(dict_key, dict_value);
+          break;
+        }
+        case TYPE_ARRAY_STRUCT: {
+          int struct_start = sign.idx;
+          int depth = 1;
+          byte _type = rpkt[sign.idx++];
+          do {
+            _type = rpkt[sign.idx++];
+            switch (_type) {
+              case TYPE__STRUCT_OPEN:
+                depth++;
+                break;
+              case TYPE__STRUCT_CLOSE:
+                depth--;
+                break;
+            }
+          } while (depth > 0);
+          int struct_end = sign.idx - 1;
+          rpkt[struct_end] = 0;
+          arg = (JFArray[])read_array_struct(struct_start);
+          rpkt[struct_end] = ')';
+          break;
+        }
+        case TYPE_ARRAY_VARIANT: {
+          arg = read_array_variant();
+          break;
+        }
+        default: {
+          throw new Exception("DBus:Error:Unsupported type:" + str);
+        }
+      }
+      return arg;
+    }
+    private String getTypeAsString(Type type) {
+      return new String(rpkt, type.idx, type.length);
     }
     /** Align read buffer position to data type size. */
     private void ralign(int size) {
@@ -1904,29 +1975,31 @@ public class DBus implements IPC {
       return str;
     }
     @SuppressWarnings("unchecked")
-    private JFTuple read_dict(String K, String V) throws Exception {
+    private JFTuple read_dict(Type K, Type V) throws Exception {
       ralign(8);
-      JFTuple pair = new JFTuple(getType(K), getType(V));
-      Object key = read_args(K)[0];
-      Object value = read_args(V)[0];
+      JFTuple pair = new JFTuple(getType(getTypeAsString(K)), getType(getTypeAsString(V)));
+      Object key = read_arg(K);
+      Object value = read_arg(V);
       pair.key = key;
       pair.value = value;
       return pair;
     }
-    private JFArray read_struct(String types) throws Exception {
+    private JFArray read_struct(int sidx) throws Exception {
       ralign(8);
-      if (!types.startsWith(TYPE_STRUCT_OPEN)) throw new Exception("DBus:expected STRUCT OPEN");
-      if (!types.endsWith(TYPE_STRUCT_CLOSE)) throw new Exception("DBus:expected STRUCT CLOSE");
-      Object[] arr = read_args(types.substring(1, types.length() - 1));
+      Index sign = new Index();
+      sign.idx = sidx;
+      Object[] arr = read_args(sign);
       JFArray<Object> struct = new JFArray<Object>(Object.class);
       struct.set(arr, 0);
       return struct;
     }
     @SuppressWarnings("unchecked")
     private JFVariant read_variant() throws Exception {
+      Index idx = new Index();
+      idx.idx = rpos + 1;
       String vartype = read_sign();
       if (debug) JFLog.log("read_variant<" + vartype);
-      JFVariant v = new JFVariant(read_args(vartype)[0]);
+      JFVariant v = new JFVariant(read_arg(idx));
       if (debug) JFLog.log(">");
       return v;
     }
@@ -2041,24 +2114,25 @@ public class DBus implements IPC {
       return str;
     }
     @SuppressWarnings("unchecked")
-    private JFDictionary read_array_dict(String K, String V) throws Exception {
-      JFDictionary dict = new JFDictionary<>(getType(K), getType(V));
+    private JFDictionary read_array_dict(Type K, Type V) throws Exception {
+      JFDictionary dict = new JFDictionary<>(getType(getTypeAsString(K)), getType(getTypeAsString(V)));
       int len = read_int();
       int start = rpos - 4;
       int end = rpos + len;
       if (debug) JFLog.log("read_array_dict{" + len + "@" + start);
+
       while (rpos < end) {
         ralign(8);
         //K = String
-        Object key = read_args(K)[0];
+        Object key = read_arg(K.clone());
         //V = Variant
-        Object value = read_args(V)[0];
+        Object value = read_arg(V.clone());
         dict.map.put(key, value);
       }
       if (debug) JFLog.log("}");
       return dict;
     }
-    private Object[] read_array_struct(String types) throws Exception {
+    private Object[] read_array_struct(int sidx) throws Exception {
       ArrayList<JFArray> list = new ArrayList<>();
       int len = read_int();
       int start = rpos - 4;
@@ -2066,7 +2140,7 @@ public class DBus implements IPC {
       int end = rpos + len;
       if (debug) JFLog.log("read_array_struct(" + len + "@" + start);
       while (rpos < end) {
-        JFArray arr = read_struct(types);
+        JFArray arr = read_struct(sidx);
         list.add(arr);
       }
       if (debug) JFLog.log(")");
