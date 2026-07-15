@@ -68,6 +68,22 @@ public class DBus implements IPC {
   public static boolean debug_msg = false;
   public static boolean debug_reading = false;
 
+  //common interfaces
+  public static final String DBUS_MESSAGE_BUS = "org.freedesktop.DBus";
+  public static final String DBUS_PEER = "org.freedesktop.DBus.Peer";
+    //Ping()
+    //GetMachineId()
+  public static final String DBUS_PROPERTIES = "org.freedesktop.DBus.Properties";
+    //Get()
+    //Set()
+    //GetAll()
+  public static final String DBUS_INTROSPECTABLE = "org.freedesktop.DBus.Introspectable";
+    //Introspect()
+  public static final String DBUS_OBJECT_MANAGER = "org.freedesktop.DBus.ObjectManager";
+    //GetManagedObjects()
+    //InterfacesAdded()
+    //InterfacesRemoved()
+
   private static final long max_packet_size = 32 * JF.MB;
 
   private static class Field {
@@ -388,21 +404,6 @@ public class DBus implements IPC {
     return null;
   }
 
-  public static final String DBUS_MESSAGE_BUS = "org.freedesktop.DBus";
-  public static final String DBUS_PEER = "org.freedesktop.DBus.Peer";
-    //Ping()
-    //GetMachineId()
-  public static final String DBUS_PROPERTIES = "org.freedesktop.DBus.Properties";
-    //Get()
-    //Set()
-    //GetAll()
-  public static final String DBUS_INTROSPECTABLE = "org.freedesktop.DBus.Introspectable";
-    //Introspect()
-  public static final String DBUS_OBJECT_MANAGER = "org.freedesktop.DBus.ObjectManager";
-    //GetManagedObjects()
-    //InterfacesAdded()
-    //InterfacesRemoved()
-
   private static int tcp_port = -1;
 
   private EndPoint ep;
@@ -669,10 +670,21 @@ public class DBus implements IPC {
     }
   }
 
-  /** Subscribe to a signal from another client. */
+  /** Subscribe to a signal from another client.
+   * @rule = dbus rule (command separated list of key/value pairs)
+   *   type='signal'
+   *   sender='javaforce.originator'
+   *   path='/javaforce/originator'
+   *   interface='javaforce.originator'
+   *   member='method_name'
+   *   destination='javaforce.recipient'
+   *   arg0,...='string_value'
+   * Typical rule = "type='signal', interface='javaforce.originator', member='Event'"
+   */
   public boolean subscribe(String rule) {
     try {
-      return (boolean)invoke(DBUS_MESSAGE_BUS, "AddMatch", rule);
+      invoke(DBUS_MESSAGE_BUS, "AddMatch", rule);
+      return true;
     } catch (Exception e) {
       JFLog.log(e);
       return false;
@@ -682,7 +694,8 @@ public class DBus implements IPC {
   /** Unsubscribe to a signal from another client. */
   public boolean unsubscribe(String rule) {
     try {
-      return (boolean)invoke(DBUS_MESSAGE_BUS, "RemoveMatch", rule);
+      invoke(DBUS_MESSAGE_BUS, "RemoveMatch", rule);
+      return true;
     } catch (Exception e) {
       JFLog.log(e);
       return false;
