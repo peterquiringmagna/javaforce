@@ -53,8 +53,6 @@ import javaforce.ipc.transport.*;
  *      Clients should just use a system supplied bus name
  *      by returning null from EndPoint.getEndPointName();
  *      Use getBusName() to determine supplied name after connect().
- *  - signal support is implemented internally
- *      DBus does have signal support but is not cross-platform
  *  - there is no way to implement a member with unsigned types
  *      since Java does not have primitive unsigned data types
  *      they are provided only for outbound calls to native methods that use them
@@ -656,61 +654,25 @@ public class DBus implements IPC {
     return invoke(dest, path, iface, method, args);
   }
 
-  private static class Signal {
-    public String method;
-    public String bus;
-  }
-  private Object lock = new Object();
-  private ArrayList<Signal> clients = new ArrayList<>();
-  private boolean signal_add_client(String bus, String method) {
-    synchronized (lock) {
-      Signal signal = new Signal();
-      signal.method = method;
-      signal.bus = bus;
-      clients.add(signal);
-    }
-    return true;
-  }
-  private boolean signal_remove_client(String bus, String method) {
-    synchronized (lock) {
-      for(Signal client : clients) {
-        if (client.bus.equals(bus) && client.method.equals(method)) {
-          clients.remove(client);
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
   /** Invokes a method in all bus members that have subscribed to the method.
    *
    * @see subscribe
    * @see unsubscribe
    */
-  public boolean signal(String method, Object... args) {
-    ArrayList<Signal> remove = new ArrayList<>();
-    synchronized (lock) {
-      for(Signal client : clients) {
-        if (!client.method.equals(method)) continue;
-        try {
-          Object res = invoke(client.bus, method, args);
-          if (res == null) throw new Exception("DBus:signal dispatch failed:" + client.bus);
-        } catch (Exception e) {
-          remove.add(client);
-        }
-      }
-      for(Signal client : remove) {
-        clients.remove(client);
-      }
+  public boolean signal(String path, String iface, String method, Object... args) {
+    try {
+      write_msg(MSG_SIGNAL, DBUS_MESSAGE_BUS, path, iface, nextSerial(), -1, method, args);
+      return true;
+    } catch (Exception e) {
+      JFLog.log(e);
+      return false;
     }
-    return true;
   }
 
   /** Subscribe to a signal from another client. */
-  public boolean subscribe(String sender, String method) {
+  public boolean subscribe(String rule) {
     try {
-      return (boolean)invoke(sender, "subscribe", method);
+      return (boolean)invoke(DBUS_MESSAGE_BUS, "AddMatch", rule);
     } catch (Exception e) {
       JFLog.log(e);
       return false;
@@ -718,9 +680,9 @@ public class DBus implements IPC {
   }
 
   /** Unsubscribe to a signal from another client. */
-  public boolean unsubscribe(String sender, String method) {
+  public boolean unsubscribe(String rule) {
     try {
-      return (boolean)invoke(sender, "unsubscribe", method);
+      return (boolean)invoke(DBUS_MESSAGE_BUS, "RemoveMatch", rule);
     } catch (Exception e) {
       JFLog.log(e);
       return false;
@@ -1215,19 +1177,21 @@ public class DBus implements IPC {
           write_sign(TYPE_STRING);
           write_String(transport.getBusName());
         }
-        //field:dest
-        walign(8);
-        if (debug) JFLog.log("write.field:DEST=" + dest);
-        write_byte(FIELD_DEST);
-        write_sign(TYPE_STRING);
-        write_String(dest);
-        if (msg_type == MSG_RETURN) {
-          //field:reply_serial
+        if (msg_type != MSG_SIGNAL) {
+          //field:dest
           walign(8);
-          if (debug) JFLog.log("write.field:REPLY_SERIAL=" + serial_reply);
-          write_byte(FIELD_REPLY_SERIAL);
-          write_sign(TYPE_UINT32);
-          write_int(serial_reply);
+          if (debug) JFLog.log("write.field:DEST=" + dest);
+          write_byte(FIELD_DEST);
+          write_sign(TYPE_STRING);
+          write_String(dest);
+          if (msg_type == MSG_RETURN) {
+            //field:reply_serial
+            walign(8);
+            if (debug) JFLog.log("write.field:REPLY_SERIAL=" + serial_reply);
+            write_byte(FIELD_REPLY_SERIAL);
+            write_sign(TYPE_UINT32);
+            write_int(serial_reply);
+          }
         }
 
         //patch fields size (excluding end of header padding to 8 bytes)
@@ -1484,51 +1448,29 @@ public class DBus implements IPC {
         args = new Object[0];
       }
       try {
-        if (isSignalRequest(member, args)) {
-          String signal = (String)args[0];
-          switch (member) {
-            case "subscribe":
-              signal_add_client(sender, signal);
-              write_msg(MSG_RETURN, sender, nextSerial(), msg_serial, member, new Object[] {true});
-              break;
-            case "unsubscribe":
-              signal_remove_client(sender, signal);
-              write_msg(MSG_RETURN, sender, nextSerial(), msg_serial, member, new Object[] {true});
-              break;
-          }
-        } else {
-          //to avoid deadlock this must be done on a seperate thread
-          String _member = member;
-          String _sender = sender;
-          int _msg_serial = msg_serial;  //field value may change with next inbound msg
-          Object[] _args = args;
-          queue.add(
-            new Runnable() {
-              public void run() {
-                try {
-                  Object ret = ep.dispatch(_member, _args);
-                  if (ret == null) throw new Exception("null");
-                  write_msg(MSG_RETURN, _sender, nextSerial(), _msg_serial, _member, new Object[] {ret});
-                } catch (Exception e) {
-                  if (debug) JFLog.log(e);
-                  write_msg(MSG_ERROR, _sender, nextSerial(), _msg_serial, _member, new Object[] {e.toString()});
-                }
+        //to avoid deadlock this must be done on a seperate thread
+        String _member = member;
+        String _sender = sender;
+        int _msg_serial = msg_serial;  //field value may change with next inbound msg
+        Object[] _args = args;
+        queue.add(
+          new Runnable() {
+            public void run() {
+              try {
+                Object ret = ep.dispatch(_member, _args);
+                if (ret == null) throw new Exception("null");
+                write_msg(MSG_RETURN, _sender, nextSerial(), _msg_serial, _member, new Object[] {ret});
+              } catch (Exception e) {
+                if (debug) JFLog.log(e);
+                write_msg(MSG_ERROR, _sender, nextSerial(), _msg_serial, _member, new Object[] {e.toString()});
               }
             }
-          );
-        }
+          }
+        );
       } catch (Exception e) {
         if (debug) JFLog.log(e);
         write_msg(MSG_ERROR, sender, nextSerial(), msg_serial, member, new Object[] {e.toString()});
       }
-    }
-    private boolean isSignalRequest(String member, Object[] args) {
-      if (!member.equals("subscribe") && !member.equals("unsubscribe")) {
-        return false;
-      }
-      if (args.length != 1) return false;
-      if (!(args[0] instanceof String)) return false;
-      return true;
     }
     private void method_return(byte msg_type) throws Exception {
       String path = null;
