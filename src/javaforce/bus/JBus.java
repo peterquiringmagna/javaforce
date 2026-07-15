@@ -55,9 +55,9 @@ public class JBus implements EndPoint {
   }
 
   /** Invoke a method on all clients that have subscribed to method. */
-  public Object signal(String dest, String method, Object... args) {
+  public Object signal(String path, String iface, String method, Object... args) {
     try {
-      return dbus.signal(method, args);
+      return dbus.signal(path, iface, method, args);
     } catch (Exception e) {
       JFLog.log(e);
       return null;
@@ -65,9 +65,9 @@ public class JBus implements EndPoint {
   }
 
   /** Subscribe to a signal from another client. */
-  public boolean subscribe(String sender, String method) {
+  public boolean subscribe(String rule) {
     try {
-      return dbus.subscribe(sender, method);
+      return dbus.subscribe(rule);
     } catch (Exception e) {
       JFLog.log(e);
       return false;
@@ -75,9 +75,9 @@ public class JBus implements EndPoint {
   }
 
   /** Unsubscribe to a signal from another client. */
-  public boolean unsubscribe(String sender, String method) {
+  public boolean unsubscribe(String rule) {
     try {
-      return dbus.unsubscribe(sender, method);
+      return dbus.unsubscribe(rule);
     } catch (Exception e) {
       JFLog.log(e);
       return false;
