@@ -166,6 +166,7 @@ public class MQTTForward {
   private class Server extends Thread implements MQTTEvents {
     public int count;
     public void run() {
+      JFLog.log("MQTTForward starting...");
       while (active) {
         Entry entry = remove();
         count += 500;  //remove() timeout is 500ms
@@ -237,6 +238,7 @@ public class MQTTForward {
           JFLog.log(e);
         }
       }
+      JFLog.log("MQTTForward stopped");
     }
 
     /** MQTTEvents.onConnect() */
