@@ -8,7 +8,7 @@
   <property name="classpath" location="javaforce.jar"/>
   <property name="jre" location="${home}/jre_base_desktop"/>
   <property name="version" value="0.10"/>
-  <property name="freerdp-version" value="3.24.1"/>
+  <property name="freerdp-version" value="3.30.0"/>
   <property name="wixheat" value="freerdp"/>
 
   <import file="${home}/base.xml"/>
