@@ -119,6 +119,8 @@ msi : build Windows msi file with JRE bundled
   - wixtoolset v4+ in path (http://wixtoolset.org)
   - install wix tool (requires dotnet 6+)
     dotnet tool install --global wix
+  - wix/7.0 now requires you to accept EULA
+    wix eula accept wix7
   - wix64.xml file
   - jre pre-linked for native packaging (see jre-* tasks above)
   - install wix extensions:
