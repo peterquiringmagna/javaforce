@@ -1,0 +1,7 @@
+what's new in native API (since 113.0)
+
+114.0
+  - fixed Windows Pipes
+
+113.0
+  - initial version with all JNI removed except for JFHeap
