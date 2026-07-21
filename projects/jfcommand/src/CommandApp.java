@@ -83,9 +83,13 @@ public class CommandApp implements ActionListener {
       cfg.append("[actions]\n");
       cfg.append("command=cmd.exe /c start cmd.exe\n");  //cmd.exe alone runs in current console environment, need to run a second copy to open new console window
       cfg.append("services=mmc.exe services.msc\n");
+      cfg.append("devmgmt=mmc.exe devmgmt.msc\n");
       cfg.append("diskmgmt=mmc.exe diskmgmt.msc\n");
+      cfg.append("eventvwr=mmc.exe eventvwr.msc\n");
+      cfg.append("certmgr=mmc.exe certmgr.msc\n");
       cfg.append("virtmgmt=mmc.exe virtmgmt.msc\n");
       cfg.append("regedit=regedit.exe\n");
+      cfg.append("taskmgr=taskmgr.exe\n");
 
 //these do not work and still present the UAC prompt (control.exe inherits rights from explorer.exe shell) (trying to run explorer.exe with admin rights fails)
 //      cfg.append("appwiz=control.exe appwiz.cpl\n");
