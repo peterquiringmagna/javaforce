@@ -1,14 +1,14 @@
 package javaforce.controls.s7;
 
+import javaforce.net.*;
+
 /**
  * S7 Header
  *
  * @author pquiring
  */
 
-import javaforce.*;
-
-public class S7Header {
+public class S7Header implements SubPacket {
   public byte id = 0x32;  //protocol id (always 0x32)
   public byte rosctr = ROSCTR_JOB;
   public short res;  //reserved
@@ -20,7 +20,7 @@ public class S7Header {
   public static final byte ROSCTR_ACK = 3;
   public static final byte ROSCTR_USERDATA = 7;
 
-  public int size() {
+  public int getSize() {
     switch (rosctr) {
       case ROSCTR_JOB: return 10;
       case ROSCTR_ACK: return 12;
@@ -28,27 +28,32 @@ public class S7Header {
     }
     return 0;
   }
-  public void write(byte[] data, int offset, short _param_length, short _data_length) {
+  public int getDataSize() {
+    return data_length;
+  }
+  public void write(Packet packet) throws Exception {
+    packet.writeByte(id);
+    packet.writeByte(rosctr);
+    packet.writeShort(res);
+    packet.writeShort(pdu_ref);
+    packet.writeShort(param_length);
+    packet.writeShort(data_length);
+  }
+  public void read(Packet packet) throws Exception {
+    id = packet.readByte();
+    rosctr = packet.readByte();
+    res = (short)packet.readShort();
+    pdu_ref = (short)packet.readShort();
+    param_length = (short)packet.readShort();
+    data_length = (short)packet.readShort();
+    if (rosctr == ROSCTR_ACK) {
+      //error_cls = packet.readByte()
+      //error_code = packet.readByte()
+    }
+  }
+  public void create(short _param_length, short _data_length) {
     pdu_ref = 0x500;
     param_length = _param_length;
     data_length = _data_length;
-    data[offset++] = id;
-    data[offset++] = rosctr;
-    BE.setuint16(data, offset, res); offset += 2;
-    BE.setuint16(data, offset, pdu_ref); offset += 2;
-    BE.setuint16(data, offset, param_length); offset += 2;
-    BE.setuint16(data, offset, data_length); offset += 2;
-  }
-  public void read(byte[] data, int offset) throws Exception {
-    id = data[offset++];
-    rosctr = data[offset++];
-    res = (short)BE.getuint16(data, offset); offset += 2;
-    pdu_ref = (short)BE.getuint16(data, offset); offset += 2;
-    param_length = (short)BE.getuint16(data, offset); offset += 2;
-    data_length = (short)BE.getuint16(data, offset); offset += 2;
-    if (rosctr == ROSCTR_ACK) {
-      //error_cls = data[offset++]
-      //error_code = data[offset++]
-    }
   }
 }

@@ -1,31 +1,44 @@
 package javaforce.net;
 
-import javaforce.BE;
-
 /** TPKT Header
  *
  * @author pquiring
  */
 
-public class TPKT {
+public class TPKT implements SubPacket {
   public byte version = 3;  //always 3
   public byte res;  //always 0
   public short length;  //length of data including this header
-  public int size() {
+
+  public TPKT() {
+  }
+  public TPKT(short length) {
+    create(length);
+  }
+
+  public int getSize() {
     return 4;
   }
-  public void write(byte[] data, int offset, short totalsize) {
-    length = totalsize;
-    data[offset++] = version;
-    data[offset++] = res;
-    BE.setuint16(data, offset, length); //offset += 2;
+  public int getDataSize() {
+    return length - 4;
   }
-  public void read(byte[] data, int offset) throws Exception {
-    version = data[offset++];
+  public void write(Packet packet) throws Exception {
+    packet.writeByte(version);
+    packet.writeByte(res);
+    packet.writeShort(length);
+  }
+  public void read(Packet packet) throws Exception {
+    version = packet.readByte();
     if (version != 3) throw new Exception("TPKT : unknown version");
-    res = data[offset++];
+    res = packet.readByte();
     if (res != 0) throw new Exception("TPKT : unknown res");
-    length = (short)BE.getuint16(data, offset);
-    offset += 2;
+    length = packet.readShort();
+  }
+
+  /** Creates header.
+   * @param length = total length (including 4 bytes for header)
+   */
+  public void create(short length) {
+    this.length = length;
   }
 }

@@ -1,15 +1,16 @@
 package javaforce.controls.s7;
 
-/**
+import java.util.*;
+
+import javaforce.*;
+import javaforce.net.*;
+
+/** S7Params Packet.
  *
  * @author pquiring
  */
 
-import java.util.*;
-
-import javaforce.*;
-
-public class S7Params {
+public class S7Params implements SubPacket {
   public byte func;
   public byte[] funcData;  //varies based on func
 
@@ -189,14 +190,18 @@ public class S7Params {
   }
 
   /** Returns size of params. */
-  public int size() {
+  public int getSize() {
     return 1 + funcData.length;
   }
 
+  public int getDataSize() {
+    return -1;
+  }
+
   /** Write params to packet. */
-  public void write(byte[] data, int offset) {
-    data[offset++] = func;
-    System.arraycopy(funcData, 0, data, offset, funcData.length);
+  public void write(Packet packet) throws Exception {
+    packet.writeByte(func);
+    packet.write(funcData);
   }
 
   private boolean isBits(byte transport_type) {
@@ -210,101 +215,99 @@ public class S7Params {
     }
   }
 
-  /** Reads params from packet and fills in S7Data. */
-  public boolean read(byte[] data, int offset, S7Data out) throws Exception {
-    func = data[offset++];
-    byte count = data[offset++];
-    for(int a=0;a<count;a++) {
-      byte success = data[offset++];
-      if (success != (byte)0xff) {
-        JFLog.log("Error:success=" + success);
-        return false;
-      }
-      if (func == READ) {
-        byte transport_type = data[offset++];
-        int len = BE.getuint16(data, offset);
-        if (isBits(transport_type)) {
-          len = (len + 7) >> 3; //divide by 8
-        }
-        offset += 2;
-        if (a == 0) {
-          out.data = new byte[len];
-          System.arraycopy(data,offset,out.data,0,len);
-        }
-        offset += len;
-        if (len % 2 == 1) {
-          offset++;  //fill byte
-        }
-      }
-    }
-    return true;
+  public void read(Packet packet) throws Exception {
+    read(packet, (S7Data)null);
   }
 
   /** Reads params from packet and fills in S7Data. */
-  public boolean read(byte[] data, int offset, S7Data[] outs) throws Exception {
-    func = data[offset++];
-    byte count = data[offset++];
+  public void read(Packet packet, S7Data out) throws Exception {
+    func = packet.readByte();
+    byte count = packet.readByte();
     for(int a=0;a<count;a++) {
-      S7Data out = outs[a];
-      byte success = data[offset++];
+      byte success = packet.readByte();
       if (success != (byte)0xff) {
-        JFLog.log("Error:success=" + success);
-        return false;
+        throw new Exception("Error:success=" + success);
       }
       if (func == READ) {
-        byte transport_type = data[offset++];
-        int len = BE.getuint16(data, offset);
+        byte transport_type = packet.readByte();
+        int len = packet.readShort();
         if (isBits(transport_type)) {
           len = (len + 7) >> 3; //divide by 8
         }
-        offset += 2;
-        out.data = new byte[len];
-        System.arraycopy(data,offset,out.data,0,len);
-        offset += len;
+        byte[] data = new byte[len];
+        packet.read(data);
+        if (a == 0 && out != null) {
+          out.data = new byte[len];
+          System.arraycopy(data,0, out.data,0, len);
+        }
         if (len % 2 == 1) {
-          offset++;  //fill byte
+          packet.readByte();  //fill byte
         }
       }
     }
-    return true;
+  }
+
+  /** Reads params from packet and fills in S7Data. */
+  public void read(Packet packet, S7Data[] outs) throws Exception {
+    func = packet.readByte();
+    byte count = packet.readByte();
+    for(int a=0;a<count;a++) {
+      S7Data out = outs[a];
+      byte success = packet.readByte();
+      if (success != (byte)0xff) {
+        throw new Exception("Error:success=" + success);
+      }
+      if (func == READ) {
+        byte transport_type = packet.readByte();
+        int len = packet.readShort();
+        if (isBits(transport_type)) {
+          len = (len + 7) >> 3; //divide by 8
+        }
+        out.data = new byte[len];
+        packet.read(out.data);
+        if (len % 2 == 1) {
+          packet.readByte();  //fill byte
+        }
+      }
+    }
   }
 
   /** Reads params from packet and fills in Calendar. */
-  public boolean read(byte[] data, int offset, Calendar out) throws Exception {
-    func = data[offset++];
-    byte count = data[offset++];
+  public void read(Packet packet, Calendar out) throws Exception {
+    func = packet.readByte();
+    byte count = packet.readByte();
     for(int a=0;a<count;a++) {
       if (func == CPU) {
-        byte var_spec = data[offset++];  //0x12
-        byte var_spec_len = data[offset++];  //0x08
-        byte syntax = data[offset++];  //0x12
-        byte func_group = data[offset++];  //0x87
-        byte sub_func = data[offset++];  //READ_CLOCK
+        byte var_spec = packet.readByte();  //0x12
+        byte var_spec_len = packet.readByte();  //0x08
+        byte syntax = packet.readByte();  //0x12
+        byte func_group = packet.readByte();  //0x87
+        byte sub_func = packet.readByte();  //READ_CLOCK
         if (sub_func == READ_CLOCK) {
-          byte seq = data[offset++];
-          byte data_ref = data[offset++];
-          byte last_data = data[offset++];
-          short error = (short)BE.getuint16(data, offset); offset += 2;
+          byte seq = packet.readByte();
+          byte data_ref = packet.readByte();
+          byte last_data = packet.readByte();
+          short error = (short)packet.readShort();
           //read data
-          byte result = data[offset++];
+          byte result = packet.readByte();
           if (result == (byte)0xff) {
-            byte trans_size = data[offset++];  //0x09 (OCTET)
+            byte trans_size = packet.readByte();  //0x09 (OCTET)
             if (trans_size != 0x09) {
-              JFLog.log("Warning:OCTET = " + trans_size);
+              throw new Exception("Warning:OCTET = " + trans_size);
             }
-            short len = (short)BE.getuint16(data, offset); offset += 2;  //0x000a
+            short len = (short)packet.readShort();  //0x000a
             if (len != 0x0a) {
-              JFLog.log("Warning:length = " + trans_size);
+              throw new Exception("Warning:length = " + trans_size);
             }
-            byte res = data[offset++];
-            int year = BCD.decode(data, offset, 2); offset += 2;
+            byte res = packet.readByte();
+            int year = BCD.decode(packet.data, packet.offset, 2); packet.offset += 2;
             year += 100;  //???
-            int month = BCD.decode(data, offset++, 1);
-            int day = BCD.decode(data, offset++, 1);
-            int hour = BCD.decode(data, offset++, 1);
-            int min = BCD.decode(data, offset++, 1);
-            int sec = BCD.decode(data, offset++, 1);
-            int ms = BCD.decode(data, offset, 2); offset += 2;
+            int month = BCD.decode(packet.data, packet.offset++, 1);
+            int day = BCD.decode(packet.data, packet.offset++, 1);
+            int hour = BCD.decode(packet.data, packet.offset++, 1);
+            int min = BCD.decode(packet.data, packet.offset++, 1);
+            int sec = BCD.decode(packet.data, packet.offset++, 1);
+            int ms = BCD.decode(packet.data, packet.offset, 2); packet.offset += 2;
             out.set(Calendar.YEAR, year);
             out.set(Calendar.MONTH, month - 1);
             out.set(Calendar.DAY_OF_MONTH, day);
@@ -313,11 +316,10 @@ public class S7Params {
             out.set(Calendar.SECOND, sec);
             out.set(Calendar.MILLISECOND, ms);
           } else {
-            JFLog.log("Read time failed! result=" + result);
+            throw new Exception("Read time failed! result=" + result);
           }
         }
       }
     }
-    return true;
   }
 }

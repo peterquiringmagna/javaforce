@@ -5,7 +5,7 @@ package javaforce.net;
  * @author pquiring
  */
 
-public class COTP {
+public class COTP implements SubPacket {
   public byte length;
   public byte PDU_type;
   public byte[] pdata;
@@ -19,12 +19,57 @@ public class COTP {
   public static final byte type_connect_ack = (byte)0xd0;
 
   public COTP() {
-    src_ref = get_next_id();
   }
   public COTP(byte type) {
-    PDU_type = type;
+    create(type);
+  }
+  private synchronized static short get_next_id() {
+    return next_id++;
+  }
+  public int getSize() {
+    return length + 1;
+  }
+  public int getDataSize() {
+    return -1;
+  }
+  public void write(Packet packet) throws Exception {
+    packet.writeByte(length);
+    packet.writeByte(PDU_type);
+    switch (PDU_type) {
+      case type_data:
+        packet.writeByte((byte)0x80);  //dest ref
+        break;
+      case type_connect:
+        packet.writeByte((byte)0x00);
+        packet.writeByte((byte)0x00);  //dest ref
+        packet.writeByte((byte)(src_ref >>> 8));
+        packet.writeByte((byte)(src_ref & 0xff));  //src ref
+        packet.writeByte((byte)0x00);  //flags
+        packet.writeByte((byte)0xc0);  //param code : TPDU size
+        packet.writeByte((byte)1);  //param length
+        packet.writeByte((byte)0x0a);  //0x09=512 , 0x0a=1024
+        packet.writeByte((byte)0xc1);  //param code : src-tsap
+        packet.writeByte((byte)2);  //param length
+        packet.writeByte((byte)0x01);
+        packet.writeByte((byte)0x00);
+        packet.writeByte((byte)0xc2);  //param code : dst-tsap
+        packet.writeByte((byte)2);  //param length
+        packet.writeByte((byte)0x01);
+        packet.writeByte((byte)0x02);
+        break;
+    }
+  }
+  public void read(Packet packet) throws Exception {
+    length = packet.readByte();
+    PDU_type = packet.readByte();
+    pdata = new byte[length - 1];
+    packet.read(pdata);
+  }
+
+  public void create(byte pdu_type) {
+    PDU_type = pdu_type;
     src_ref = get_next_id();
-    switch (type) {
+    switch (pdu_type) {
       case type_data:
         length = 2;
         break;
@@ -34,45 +79,6 @@ public class COTP {
       default:
         System.out.println("Error:Unknown COTP type!!!");
         break;
-    }
-  }
-  private synchronized static short get_next_id() {
-    return next_id++;
-  }
-  public int size() {
-    return length + 1;
-  }
-  public void write(byte[] data, int offset) {
-    data[offset++] = length;
-    data[offset++] = PDU_type;
-    switch (PDU_type) {
-      case type_data:
-        data[offset++] = (byte)0x80;  //dest ref
-        break;
-      case type_connect:
-        data[offset++] = 0x00; data[offset++] = 0x00;  //dest ref
-        data[offset++] = (byte)(src_ref >>> 8); data[offset++] = (byte)(src_ref & 0xff);  //src ref
-        data[offset++] = 0x00;  //flags
-        data[offset++] = (byte)0xc0;  //param code : TPDU size
-        data[offset++] = 1;  //param length
-        data[offset++] = 0x0a;  //0x09=512 , 0x0a=1024
-        data[offset++] = (byte)0xc1;  //param code : src-tsap
-        data[offset++] = 2;  //param length
-        data[offset++] = 0x01;
-        data[offset++] = 0x00;
-        data[offset++] = (byte)0xc2;  //param code : dst-tsap
-        data[offset++] = 2;  //param length
-        data[offset++] = 0x01;
-        data[offset++] = 0x02;
-        break;
-    }
-  }
-  public void read(byte[] data, int offset) throws Exception {
-    length = data[offset++];
-    PDU_type = data[offset++];
-    pdata = new byte[length - 1];
-    for(int a=0;a<length-1;a++) {
-      pdata[a] = data[offset++];
     }
   }
 }

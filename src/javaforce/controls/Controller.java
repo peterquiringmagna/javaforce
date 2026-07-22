@@ -270,8 +270,8 @@ public class Controller {
   }
 
   private boolean writePartial(S7Data s7) {
-    byte[] packet = S7Packet.makeWritePacket(s7);
     try {
+      byte[] packet = S7Packet.makeWritePacket(s7);
       os.write(packet);
     } catch (Exception e) {
       lastException = e;
@@ -412,8 +412,8 @@ public class Controller {
   }
 
   private byte[] readPartial(S7Data s7) {
-    byte[] packet = S7Packet.makeReadPacket(s7);
     try {
+      byte[] packet = S7Packet.makeReadPacket(s7);
       os.write(packet);
     } catch (Exception e) {
       lastException = e;
@@ -623,8 +623,8 @@ public class Controller {
         for(int a=0;a<addr.length;a++) {
           s7[a] = S7Packet.decodeAddress(addr[a]);
         }
-        byte[] packet = S7Packet.makeReadPacket(s7);
         try {
+          byte[] packet = S7Packet.makeReadPacket(s7);
           os.write(packet);
         } catch (Exception e) {
           lastException = e;
@@ -739,8 +739,8 @@ public class Controller {
     }
     switch (plcType) {
       case ControllerType.S7: {
-        byte[] packet = S7Packet.makeReadTimePacket();
         try {
+          byte[] packet = S7Packet.makeReadTimePacket();
           os.write(packet);
         } catch (Exception e) {
           lastException = e;
@@ -796,8 +796,8 @@ public class Controller {
     if (!connected) return false;
     switch (plcType) {
       case ControllerType.S7: {
-        byte[] packet = S7Packet.makeWriteTimePacket(dt);
         try {
+          byte[] packet = S7Packet.makeWriteTimePacket(dt);
           os.write(packet);
         } catch (Exception e) {
           lastException = e;

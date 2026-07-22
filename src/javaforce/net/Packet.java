@@ -1,5 +1,7 @@
 package javaforce.net;
 
+import java.util.*;
+
 import javaforce.*;
 
 /** Ethernet Packet
@@ -17,6 +19,10 @@ public class Packet {
   public Packet(byte endian) {
     data = new byte[mtu];
     this.endian = endian;
+  }
+  public Packet(byte[] data) {
+    this.data = data;
+    this.length = data.length;
   }
   public Packet(byte[] data, int offset, int length) {
     this.data = data;
@@ -179,6 +185,13 @@ public class Packet {
   public static void setDefaultMTU(int mtu) {
     if (mtu < 1500 || mtu > 65536) return;
     Packet.mtu = mtu;
+  }
+
+  public byte[] toByteArray() {
+    if (length == data.length) {
+      return data;
+    }
+    return Arrays.copyOf(data, length);
   }
 
   public String toString() {
