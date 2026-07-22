@@ -90,8 +90,10 @@ public class CommandApp implements ActionListener {
       cfg.append("compmgmt=mmc.exe compmgmt.msc\n");
       cfg.append("virtmgmt=mmc.exe virtmgmt.msc\n");
       cfg.append("sysdm=rundll32.exe shell32.dll,Control_RunDLL sysdm.cpl\n");
+      cfg.append("timedate=rundll32.exe shell32.dll,Control_RunDLL timedate.cpl\n");
       cfg.append("regedit=regedit.exe\n");
       cfg.append("taskmgr=taskmgr.exe\n");
+      //NOTE : Does not work : appwiz.cpl, ncpa.cpl
 
 //these do not work and still present the UAC prompt (control.exe inherits rights from explorer.exe shell) (trying to run explorer.exe with admin rights fails)
 //      cfg.append("appwiz=control.exe appwiz.cpl\n");
