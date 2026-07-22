@@ -1,7 +1,5 @@
 package javaforce.net;
 
-import javaforce.net.*;
-
 /** PacketReceiver
  *
  * @author pquiring

@@ -28,6 +28,8 @@ package javaforce.controls.s7;
 
 import java.util.*;
 
+import javaforce.net.*;
+
 public class S7Packet {
 
   /** Creates a packet to connect at COTP level (connect step1). */

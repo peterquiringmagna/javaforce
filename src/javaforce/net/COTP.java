@@ -1,4 +1,4 @@
-package javaforce.controls.s7;
+package javaforce.net;
 
 /** COTP - Connection-Oriented Transport Protocol (ISO 8073/X.224)
  *

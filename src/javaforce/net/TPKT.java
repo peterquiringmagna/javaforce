@@ -1,4 +1,4 @@
-package javaforce.controls.s7;
+package javaforce.net;
 
 import javaforce.BE;
 

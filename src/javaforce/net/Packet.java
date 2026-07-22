@@ -12,15 +12,23 @@ public class Packet {
     this.offset = offset;
     this.length = length;
   }
+  /** Packet data. */
   public byte[] data;
+  /** Packet offset. */
   public int offset;
+  /** Packet length. */
   public int length;
 
+  /** Packet source host. */
   public String host;
+  /** Packet source port. */
   public int port;
 
+  /** Packet media stream. */
   public int stream;
+  /** Packet media timestamp. */
   public long ts;
+  /** Packet media key frame. */
   public boolean keyFrame;
 
   public String toString() {
