@@ -87,6 +87,7 @@ public class CommandApp implements ActionListener {
       cfg.append("diskmgmt=mmc.exe diskmgmt.msc\n");
       cfg.append("eventvwr=mmc.exe eventvwr.msc\n");
       cfg.append("certmgr=mmc.exe certmgr.msc\n");
+      cfg.append("compmgmt=mmc.exe compmgmt.msc\n");
       cfg.append("virtmgmt=mmc.exe virtmgmt.msc\n");
       cfg.append("sysdm=rundll32.exe shell32.dll,Control_RunDLL sysdm.cpl\n");
       cfg.append("regedit=regedit.exe\n");
