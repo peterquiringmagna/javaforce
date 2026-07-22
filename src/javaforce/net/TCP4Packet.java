@@ -7,7 +7,6 @@ package javaforce.net;
 
 public class TCP4Packet implements SubPacket {
   private int header_length;
-  private int length;
 
   public short src_port;
   public short dst_port;
@@ -16,8 +15,8 @@ public class TCP4Packet implements SubPacket {
 
   public TCP4Packet() {}
 
-  public TCP4Packet(short src_port, short dst_port, int length) {
-    create(src_port, dst_port, length);
+  public TCP4Packet(short src_port, short dst_port) {
+    create(src_port, dst_port);
   }
 
   public int getSize() {
@@ -25,7 +24,7 @@ public class TCP4Packet implements SubPacket {
   }
 
   public int getDataSize() {
-    return length;
+    return -1;
   }
 
   public void read(Packet packet) throws Exception {
@@ -56,8 +55,7 @@ public class TCP4Packet implements SubPacket {
   }
 
   /** Create TCP Packet with supplied parameters. */
-  public void create(short src_port, short dst_port, int length) {
-    this.length = length;
+  public void create(short src_port, short dst_port) {
     this.src_port = src_port;
     this.dst_port = dst_port;
   }
