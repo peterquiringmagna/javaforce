@@ -41,7 +41,7 @@ public class S7Packet {
     int size = tpkt.getSize() + cotp.getSize();
     tpkt.create((short)size);
     tpkt.write(packet);
-    cotp.create(COTP.type_connect);
+    cotp.createS7Connect();
     cotp.write(packet);
     return packet.toByteArray();
   }
@@ -58,7 +58,7 @@ public class S7Packet {
     int size = tpkt.getSize() + cotp.getSize() + header.getSize() + params.getSize();
     tpkt.create((short)size);
     tpkt.write(packet);
-    cotp.create(COTP.type_data);
+    cotp.createS7Data();
     cotp.write(packet);
     header.create((short)params.getSize(), (short)0);
     header.write(packet);
@@ -78,7 +78,7 @@ public class S7Packet {
     int size = tpkt.getSize() + cotp.getSize() + header.getSize() + params.getSize();
     tpkt.create((short)size);
     tpkt.write(packet);
-    cotp.create(COTP.type_data);
+    cotp.createS7Data();
     cotp.write(packet);
     header.create((short)params.getSize(), (short)0);
     header.write(packet);
@@ -98,7 +98,7 @@ public class S7Packet {
     int size = tpkt.getSize() + cotp.getSize() + header.getSize() + params.getSize();
     tpkt.create((short)size);
     tpkt.write(packet);
-    cotp.create(COTP.type_data);
+    cotp.createS7Data();
     cotp.write(packet);
     header.create((short)params.getSize(), (short)0);
     header.write(packet);
@@ -119,7 +119,7 @@ public class S7Packet {
     int size = tpkt.getSize() + cotp.getSize() + header.getSize() + params.getSize();
     tpkt.create((short)size);
     tpkt.write(packet);
-    cotp.create(COTP.type_data);
+    cotp.createS7Data();
     cotp.write(packet);
     header.create((short)(params.getSize() - 4), (short)4);
     header.write(packet);
@@ -139,7 +139,7 @@ public class S7Packet {
     int size = tpkt.getSize() + cotp.getSize() + header.getSize() + params.getSize();
     tpkt.create((short)size);
     tpkt.write(packet);
-    cotp.create(COTP.type_data);
+    cotp.createS7Data();
     cotp.write(packet);
     header.create((short)(params.getSize() - 4 - type.data.length), (short)(4 + type.data.length));
     header.write(packet);
@@ -160,7 +160,7 @@ public class S7Packet {
     int size = tpkt.getSize() + cotp.getSize() + header.getSize() + params.getSize();
     tpkt.create((short)size);
     tpkt.write(packet);
-    cotp.create(COTP.type_data);
+    cotp.createS7Data();
     cotp.write(packet);
     header.create((short)(params.getSize() - 14), (short)14);
     header.write(packet);
@@ -265,8 +265,8 @@ public class S7Packet {
       tpkt.read(packet);
       COTP cotp = new COTP();
       cotp.read(packet);
-      if (cotp.PDU_type == COTP.type_connect) return data;
-      if (cotp.PDU_type == COTP.type_connect_ack) return data;
+      if (cotp.PDU_type == COTP.TYPE_CONNECT) return data;
+      if (cotp.PDU_type == COTP.TYPE_CONNECT_ACK) return data;
       S7Header header = new S7Header();
       header.read(packet);
       S7Params params = new S7Params();
@@ -290,8 +290,8 @@ public class S7Packet {
       tpkt.read(packet);
       COTP cotp = new COTP();
       cotp.read(packet);
-      if (cotp.PDU_type == COTP.type_connect) return data;
-      if (cotp.PDU_type == COTP.type_connect_ack) return data;
+      if (cotp.PDU_type == COTP.TYPE_CONNECT) return data;
+      if (cotp.PDU_type == COTP.TYPE_CONNECT_ACK) return data;
       S7Header header = new S7Header();
       header.read(packet);
       S7Params params = new S7Params();
