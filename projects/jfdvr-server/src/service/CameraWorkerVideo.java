@@ -35,8 +35,8 @@ public class CameraWorkerVideo extends Thread implements RTSPClientInterface, RT
   private Media encoder;
   private long folder_size;
   private boolean active = true;
-  private PacketBuffer packets_decode;
-  private PacketBuffer packets_encode;
+  private PacketDemux packets_decode;
+  private PacketDemux packets_encode;
   private long lastKeepAlive;
   private long lastPacket;
   private int last_frame[];
@@ -434,11 +434,11 @@ public class CameraWorkerVideo extends Thread implements RTSPClientInterface, RT
       h264 = new RTPH264();
       h264.setLog(log);
       if (isDecoder) {
-        packets_decode = new PacketBuffer(CodecType.H264);
+        packets_decode = new PacketDemux(CodecType.H264);
         packets_decode.setLog(log);
       }
       if (isEncoder) {
-        packets_encode = new PacketBuffer(CodecType.H264);
+        packets_encode = new PacketDemux(CodecType.H264);
         packets_encode.setLog(log);
       }
       if (isEncoder) {
@@ -450,11 +450,11 @@ public class CameraWorkerVideo extends Thread implements RTSPClientInterface, RT
       h265 = new RTPH265();
       h265.setLog(log);
       if (isDecoder) {
-        packets_decode = new PacketBuffer(CodecType.H265);
+        packets_decode = new PacketDemux(CodecType.H265);
         packets_decode.setLog(log);
       }
       if (isEncoder) {
-        packets_encode = new PacketBuffer(CodecType.H265);
+        packets_encode = new PacketDemux(CodecType.H265);
         packets_encode.setLog(log);
       }
       if (isEncoder) {

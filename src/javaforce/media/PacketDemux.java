@@ -1,9 +1,10 @@
-package javaforce.voip;
+package javaforce.media;
 
 import javaforce.*;
 import javaforce.net.*;
+import javaforce.voip.*;
 
-/** PacketBuffer.
+/** PacketDemux.
  *
  * Combines H264/H265 packets into full frames.
  *
@@ -11,7 +12,7 @@ import javaforce.net.*;
  *
  */
 
-public class PacketBuffer {
+public class PacketDemux {
   private static final int maxPacketsSize = 16 * 1024 * 1024;
   private static final int maxPackets = 256;
 
@@ -21,7 +22,7 @@ public class PacketBuffer {
    *
    * @param codecType = H264 or H265
    */
-  public PacketBuffer(int codecType) {
+  public PacketDemux(int codecType) {
     this.codecType = codecType;
     data = new byte[maxPacketsSize];
     nextFrame.data = new byte[maxPacketsSize];

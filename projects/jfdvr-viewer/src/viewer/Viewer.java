@@ -96,7 +96,7 @@ public class Viewer {
     private RTPChannel channel;
     private RTPH264 h264;
     private RTPH265 h265;
-    private PacketBuffer packets;
+    private PacketDemux packets;
     private long lastPacket;
     private long lastKeepAlive;
     private int decoded_frame[];
@@ -344,11 +344,11 @@ public class Viewer {
         if (stream.hasCodec(RTP.CODEC_H264)) {
           av_codec = MediaCoder.AV_CODEC_ID_H264;
           h264 = new RTPH264();
-          packets = new PacketBuffer(CodecType.H264);
+          packets = new PacketDemux(CodecType.H264);
         } else if (stream.hasCodec(RTP.CODEC_H265)) {
           av_codec = MediaCoder.AV_CODEC_ID_H265;
           h265 = new RTPH265();
-          packets = new PacketBuffer(CodecType.H265);
+          packets = new PacketDemux(CodecType.H265);
         } else {
           JFLog.log(log, "DVR Viewer:No supported codec detected");
           return;
