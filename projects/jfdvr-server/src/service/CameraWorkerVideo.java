@@ -12,6 +12,7 @@ import javaforce.*;
 import javaforce.awt.*;
 import javaforce.voip.*;
 import javaforce.media.*;
+import javaforce.net.*;
 
 public class CameraWorkerVideo extends Thread implements RTSPClientInterface, RTPInterface, CameraWorker, PacketReceiver {
   public Camera camera;

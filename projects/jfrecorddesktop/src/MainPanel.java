@@ -16,6 +16,7 @@ import javaforce.awt.*;
 import javaforce.media.*;
 import javaforce.service.*;
 import javaforce.voip.*;
+import javaforce.net.*;
 
 public class MainPanel extends javax.swing.JPanel implements MediaIO, ActionListener, WebHandler {
 

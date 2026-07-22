@@ -1,6 +1,7 @@
 package javaforce.voip;
 
 import javaforce.*;
+import javaforce.net.*;
 
 /** PacketBuffer.
  *

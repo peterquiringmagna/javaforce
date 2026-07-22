@@ -17,6 +17,7 @@ import javaforce.*;
 import javaforce.awt.*;
 import javaforce.media.*;
 import javaforce.voip.*;
+import javaforce.net.*;
 
 import common.Config;
 

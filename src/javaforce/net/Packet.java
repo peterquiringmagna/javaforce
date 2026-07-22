@@ -1,4 +1,4 @@
-package javaforce.voip;
+package javaforce.net;
 
 /** SIP/RTSP Packet
  *

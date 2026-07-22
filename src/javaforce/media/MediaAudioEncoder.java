@@ -4,6 +4,7 @@ import javaforce.*;
 import javaforce.voip.*;
 import javaforce.api.*;
 import javaforce.ffm.*;
+import javaforce.net.*;
 
 /** Media audio encoder.
  *

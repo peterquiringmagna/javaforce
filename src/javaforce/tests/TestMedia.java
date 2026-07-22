@@ -6,6 +6,7 @@ import java.util.*;
 import javaforce.*;
 import javaforce.media.*;
 import javaforce.voip.*;
+import javaforce.net.*;
 
 /** TestMedia.
  *

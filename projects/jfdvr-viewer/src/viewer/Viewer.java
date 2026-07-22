@@ -13,6 +13,7 @@ import javaforce.*;
 import javaforce.awt.*;
 import javaforce.voip.*;
 import javaforce.media.*;
+import javaforce.net.*;
 
 public class Viewer {
 

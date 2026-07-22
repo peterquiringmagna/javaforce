@@ -17,6 +17,7 @@ import javaforce.awt.*;
 import javaforce.bus.*;
 import javaforce.voip.*;
 import javaforce.media.*;
+import javaforce.net.*;
 
 public class MainPanel extends javax.swing.JPanel implements ActionListener {
 

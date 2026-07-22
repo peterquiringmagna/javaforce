@@ -4,6 +4,7 @@ import java.net.*;
 import java.io.*;
 
 import javaforce.*;
+import javaforce.net.*;
 
 /** SIP TCP Transport.
  *

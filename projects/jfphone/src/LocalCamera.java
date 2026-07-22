@@ -5,10 +5,12 @@
 
 import java.io.*;
 import java.util.*;
+
 import javaforce.*;
 import javaforce.awt.*;
 import javaforce.media.*;
 import javaforce.voip.*;
+import javaforce.net.*;
 
 public class LocalCamera extends Thread implements MediaIO, PacketReceiver {
   private volatile boolean active = false;

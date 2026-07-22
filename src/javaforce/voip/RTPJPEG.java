@@ -1,6 +1,7 @@
 package javaforce.voip;
 
 import javaforce.*;
+import javaforce.net.*;
 
 /**
  * Encodes/Decodes RTP/JPEG packets (type 26).

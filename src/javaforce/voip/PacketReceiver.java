@@ -1,5 +1,7 @@
 package javaforce.voip;
 
+import javaforce.net.*;
+
 /** PacketReceiver
  *
  * @author pquiring

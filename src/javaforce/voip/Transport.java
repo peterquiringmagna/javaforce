@@ -2,6 +2,8 @@ package javaforce.voip;
 
 import java.net.*;
 
+import javaforce.net.*;
+
 /** SIP Transport interface.
  *
  * NOTE:There is no "connect" function since this interface must work for "connection" and "connectionless" type

@@ -2,6 +2,8 @@ package javaforce.voip;
 
 import java.util.*;
 
+import javaforce.net.*;
+
 /** Packet Pool
  *
  * @author pquiring

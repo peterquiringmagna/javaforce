@@ -11,6 +11,7 @@ import java.util.*;
 import javaforce.*;
 import javaforce.voip.*;
 import javaforce.media.*;
+import javaforce.net.*;
 
 public class MediaTest implements MediaIO {
   public RandomAccessFile raf;

@@ -12,6 +12,7 @@ import javaforce.*;
 import javaforce.awt.*;
 import javaforce.media.*;
 import javaforce.voip.*;
+import javaforce.net.*;
 
 public class Service extends Thread implements RTSPServerInterface {
 

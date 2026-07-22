@@ -4,6 +4,7 @@ import java.io.*;
 
 import javaforce.*;
 import javaforce.voip.*;
+import javaforce.net.*;
 
 /** JavaForce Media File.
  *

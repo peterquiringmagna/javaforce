@@ -3,6 +3,7 @@ package javaforce.media;
 import javaforce.voip.*;
 import javaforce.api.*;
 import javaforce.ffm.*;
+import javaforce.net.*;
 
 /** Media video decoder.
  *

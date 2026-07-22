@@ -10,6 +10,7 @@ import java.io.*;
 import javaforce.*;
 import javaforce.voip.*;
 import javaforce.media.*;
+import javaforce.net.*;
 
 public class Transcoder {
   MediaOutput encoder = new MediaOutput();

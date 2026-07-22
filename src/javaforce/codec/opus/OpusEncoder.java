@@ -8,6 +8,7 @@ package javaforce.codec.opus;
 import javaforce.*;
 import javaforce.media.*;
 import javaforce.voip.*;
+import javaforce.net.*;
 
 public class OpusEncoder {
 
