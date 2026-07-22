@@ -31,6 +31,9 @@ public class IP4 implements Comparable<IP4> {
   public IP4(IP4 ip4) {
     setIP(ip4);
   }
+  public IP4(byte[] in) {
+    setIP(in);
+  }
   public static boolean isIP(String str) {
     if (str.equals("0:0:0:0:0:0:0:1")) {
       //IP6 localhost
@@ -74,6 +77,12 @@ public class IP4 implements Comparable<IP4> {
   public boolean setIP(IP4 o) {
     for(int a=0;a<4;a++) {
       ip[a] = o.ip[a];
+    }
+    return true;
+  }
+  public boolean setIP(byte[] in) {
+    for(int a=0;a<4;a++) {
+      ip[a] = in[a];
     }
     return true;
   }

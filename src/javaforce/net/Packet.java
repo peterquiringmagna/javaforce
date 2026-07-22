@@ -1,16 +1,27 @@
 package javaforce.net;
 
-/** SIP/RTSP Packet
+import javaforce.*;
+
+/** Ethernet Packet
  *
  * @author pquiring
  */
 
 public class Packet {
   public Packet() {}
+  public Packet(byte endian) {
+    this.endian = endian;
+  }
   public Packet(byte[] data, int offset, int length) {
     this.data = data;
     this.offset = offset;
     this.length = length;
+  }
+  public Packet(byte[] data, int offset, int length, byte endian) {
+    this.data = data;
+    this.offset = offset;
+    this.length = length;
+    this.endian = endian;
   }
   /** Packet data. */
   public byte[] data;
@@ -18,6 +29,10 @@ public class Packet {
   public int offset;
   /** Packet length. */
   public int length;
+  /** Packet Endian (default = B)
+   * @see javaforce.Endian
+   */
+  public byte endian = Endian.B;
 
   /** Packet source host. */
   public String host;
@@ -30,6 +45,109 @@ public class Packet {
   public long ts;
   /** Packet media key frame. */
   public boolean keyFrame;
+  
+  /** Reset offset to start reading packet. */
+  public void reset() {
+    offset = 0;
+  }
+  
+  /** Set Packet Endian.
+   * @param value = javaforce.Endian.*
+   */
+  public void setEndian(byte value) {
+    if (value < Endian.min || value > Endian.max) return;
+    endian = value;
+  }
+  
+  public byte readByte() throws Exception {
+    if (offset >= length) throw new Exception("Buffer underflow");
+    return data[offset++];
+  }
+  
+  public short readShort() throws Exception {
+    if (offset + 2 > length) throw new Exception("Buffer underflow");
+    short value;
+    if (endian == Endian.B) 
+      value = (short)BE.getuint16(data, offset);
+    else
+      value = (short)LE.getuint16(data, offset);
+    offset += 2;
+    return value;
+  }
+
+  public int readInt() throws Exception {
+    if (offset + 4 > length) throw new Exception("Buffer underflow");
+    int value;
+    if (endian == Endian.B) 
+      value = BE.getuint32(data, offset);
+    else
+      value = LE.getuint32(data, offset);
+    offset += 4;
+    return value;
+  }
+
+  public long readLong() throws Exception {
+    if (offset + 8 > length) throw new Exception("Buffer underflow");
+    long value;
+    if (endian == Endian.B) 
+      value = BE.getuint64(data, offset);
+    else
+      value = LE.getuint64(data, offset);
+    offset += 8;
+    return value;
+  }
+
+  public void read(byte[] buf) throws Exception {
+    read(buf, 0, buf.length);    
+  }
+
+  public void read(byte[] buf, int buf_offset, int buf_length) throws Exception {
+    if (offset + buf_length > length) throw new Exception("Buffer underflow");
+    System.arraycopy(data, offset, buf, buf_offset, buf_length);
+    offset += buf_length;
+  }
+  
+  public void writeByte(byte value) throws Exception {
+    if (offset + 1 > data.length) throw new Exception("Buffer overflow");    
+    data[offset++] = value;
+  }
+
+  public void writeShort(short value) throws Exception {
+    if (offset + 2 > data.length) throw new Exception("Buffer overflow");    
+    if (endian == Endian.B) 
+      BE.setuint16(data, offset, value);
+    else
+      LE.setuint16(data, offset, value);
+    offset += 2;
+  }
+
+  public void writeInt(int value) throws Exception {
+    if (offset + 4 > data.length) throw new Exception("Buffer overflow");    
+    if (endian == Endian.B) 
+      BE.setuint32(data, offset, value);
+    else
+      LE.setuint32(data, offset, value);
+    offset += 4;
+  }
+
+  public void writeLong(long value) throws Exception {
+    if (offset + 8 > data.length) throw new Exception("Buffer overflow");    
+    if (endian == Endian.B) 
+      BE.setuint64(data, offset, value);
+    else
+      LE.setuint64(data, offset, value);
+    offset += 8;
+  }
+
+  public void write(byte[] buf) throws Exception {
+    write(buf, 0, buf.length);    
+  }
+  
+  public void write(byte[] buf, int buf_offset, int buf_length) throws Exception {
+    if (offset + buf_length > data.length) throw new Exception("Buffer overflow");    
+    System.arraycopy(buf, buf_offset, data, offset, buf_length);
+    offset += buf_length;
+  }
 
   public String toString() {
     return "Packet:{data:" + data + ",offset:" + offset + ",length:" + length + "}";
