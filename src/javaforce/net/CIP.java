@@ -2,7 +2,7 @@ package javaforce.net;
 
 import javaforce.controls.ab.*;
 
-/** CIP : Connection Manager : Request
+/** CIP : Common Industrial Protocol
  *
  * @author pquiring
  */

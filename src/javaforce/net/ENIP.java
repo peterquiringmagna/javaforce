@@ -2,7 +2,11 @@ package javaforce.net;
 
 import javaforce.controls.ab.*;
 
-/** EtherNet/IP (Industrial Protocol)
+/** EtherNet/IP (Industrial Protocol).
+ *
+ * The ill named packet:
+ *   EtherNet/IP is a sub packet of the Ethernet/IP packets.
+ *   Namer deserves the Darwin award.
  *
  * @author pquiring
  */
