@@ -36,7 +36,7 @@ public class COTP {
         break;
     }
   }
-  private synchronized short get_next_id() {
+  private synchronized static short get_next_id() {
     return next_id++;
   }
   public int size() {
