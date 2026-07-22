@@ -1,5 +1,7 @@
 package javaforce.voip;
 
+import javaforce.net.*;
+
 /**
  * Encodes/Decodes RTP/H263 packets.
  *
