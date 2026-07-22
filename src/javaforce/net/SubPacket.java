@@ -6,7 +6,12 @@ package javaforce.net;
  */
 
 public interface SubPacket {
+  /** Get header size. */
   public int getSize();
-  public void read(Packet packet) throws Exception;  
-  public void write(Packet packet) throws Exception;  
+  /** Get payload size. */
+  public int getDataSize();
+  /** Read packet header. */
+  public void read(Packet packet) throws Exception;
+  /** Write packet header. */
+  public void write(Packet packet) throws Exception;
 }

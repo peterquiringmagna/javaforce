@@ -8,6 +8,7 @@ import java.util.*;
  */
 
 public class IP4Packet implements SubPacket {
+  private int header_length;
   private int length;
   private int id;
   private byte protocol;
@@ -21,6 +22,10 @@ public class IP4Packet implements SubPacket {
   }
 
   public int getSize() {
+    return header_length * 4;
+  }
+
+  public int getDataSize() {
     return length;
   }
 
@@ -29,7 +34,7 @@ public class IP4Packet implements SubPacket {
     byte ver_length = packet.readByte();
     byte version = (byte)((ver_length & 0xf0) >> 4);
     if (version != 4) throw new Exception("IP4:Invalid Packet version");
-    int header_length = (ver_length & 0xf);  //length in 32bit fields
+    header_length = (ver_length & 0xf);  //length in 32bit fields
     if (header_length < 5) throw new Exception("IP4:Invalid header length");
     short service_type = packet.readByte();
     length = packet.readShort();
@@ -42,9 +47,8 @@ public class IP4Packet implements SubPacket {
     src = new IP4(ip);
     packet.read(ip);
     dst = new IP4(ip);
-    header_length -= 5;
-    if (header_length > 0) {
-      packet.offset += header_length * 4;
+    if (header_length > 5) {
+      packet.offset += (header_length - 5) * 4;
     }
   }
 
@@ -64,6 +68,7 @@ public class IP4Packet implements SubPacket {
 
   /** Create IP4 Packet with supplied parameters. */
   public void create(IP4 src, IP4 dst, int length, byte protocol) {
+    this.header_length = 5;
     this.length = length;
     this.src = src;
     this.dst = dst;
