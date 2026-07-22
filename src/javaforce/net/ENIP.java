@@ -1,6 +1,5 @@
 package javaforce.net;
 
-import javaforce.LE;
 import javaforce.controls.ab.*;
 
 /** EtherNet/IP (Industrial Protocol)
@@ -8,7 +7,7 @@ import javaforce.controls.ab.*;
  * @author pquiring
  */
 
-public class ENIP {
+public class ENIP implements SubPacket {
   //header (24 bytes)
   public short cmd;  //cmd type
   public short len;  //following command data below
@@ -51,27 +50,31 @@ public class ENIP {
     return -1;
   }
 
-  public void read(byte[] data, int offset) throws Exception {
-    cmd = (short)LE.getuint16(data, offset); offset += 2;
-    len = (short)LE.getuint16(data, offset); offset += 2;
-    session = LE.getuint32(data, offset); offset += 4;
-    status = LE.getuint32(data, offset); offset += 4;
-    context = LE.getuint64(data, offset); offset += 8;
-    options = LE.getuint32(data, offset); offset += 4;
+  public int getDataSize() {
+    return -1;
+  }
+
+  public void read(Packet packet) throws Exception {
+    cmd = packet.readShort();
+    len = packet.readShort();
+    session = packet.readInt();
+    status = packet.readInt();
+    context = packet.readLong();
+    options = packet.readInt();
     switch (cmd) {
       case CMD_RR_DATA:
-        ihandle = LE.getuint32(data, offset); offset += 4;
-        timeout = (short)LE.getuint16(data, offset); offset += 2;
-        count = (short)LE.getuint16(data, offset); offset += 2;
+        ihandle = packet.readInt();
+        timeout = packet.readShort();
+        count = packet.readShort();
         if (count != 2) throw new Exception("ab:bad ip packet");
-        type_1 = (short)LE.getuint16(data, offset); offset += 2;
-        len_1 = (short)LE.getuint16(data, offset); offset += 2;
-        type_2 = (short)LE.getuint16(data, offset); offset += 2;
-        len_2 = (short)LE.getuint16(data, offset); offset += 2;
+        type_1 = packet.readShort();
+        len_1 = packet.readShort();
+        type_2 = packet.readShort();
+        len_2 = packet.readShort();
         break;
       case CMD_GET_SESSION:
-        protocol = (short)LE.getuint16(data, offset); offset += 2;
-        flags = (short)LE.getuint16(data, offset); offset += 2;
+        protocol = packet.readShort();
+        flags = packet.readShort();
         break;
       case CMD_SEND_UNIT_DATA:
         //TODO
@@ -95,50 +98,50 @@ public class ENIP {
     }
   }
 
-  public void write(byte[] data, int offset) {
-    write(data,offset,null);
+  public void write(Packet packet) throws Exception {
+    write(packet, null);
   }
-  
-  public void write(byte[] data, int offset, ABContext abcontext) {
+
+  public void write(Packet packet, ABContext abcontext) throws Exception {
     if (abcontext != null) {
       session = abcontext.session;
       context = abcontext.context;
     }
     //24 bytes
-    LE.setuint16(data, offset, cmd); offset += 2;
-    LE.setuint16(data, offset, len); offset += 2;
-    LE.setuint32(data, offset, session); offset += 4;
-    LE.setuint32(data, offset, status); offset += 4;
-    LE.setuint64(data, offset, context); offset += 8;
-    LE.setuint32(data, offset, options); offset += 4;
+    packet.writeShort(cmd);
+    packet.writeShort(len);
+    packet.writeInt(session);
+    packet.writeInt(status);
+    packet.writeLong(context);
+    packet.writeInt(options);
     switch (cmd) {
       case CMD_RR_DATA:
         //16 bytes
-        LE.setuint32(data, offset, ihandle); offset += 4;
-        LE.setuint16(data, offset, timeout); offset += 2;
-        LE.setuint16(data, offset, count); offset += 2;
-        LE.setuint16(data, offset, type_1); offset += 2;
-        LE.setuint16(data, offset, len_1); offset += 2;
-        LE.setuint16(data, offset, type_2); offset += 2;
-        LE.setuint16(data, offset, len_2); offset += 2;
+        packet.writeInt(ihandle);
+        packet.writeShort(timeout);
+        packet.writeShort(count);
+        packet.writeShort(type_1);
+        packet.writeShort(len_1);
+        packet.writeShort(type_2);
+        packet.writeShort(len_2);
         if (abcontext != null) {
           abcontext.increment();
         }
         break;
       case CMD_GET_SESSION:
         //4
-        LE.setuint16(data, offset, protocol); offset += 2;
-        LE.setuint16(data, offset, flags); offset += 2;
+        packet.writeShort(protocol);
+        packet.writeShort(flags);
         break;
       case CMD_SEND_UNIT_DATA:
         //22 bytes
-        LE.setuint32(data, offset, ihandle); offset += 4;
-        LE.setuint16(data, offset, timeout); offset += 2;
-        LE.setuint16(data, offset, count); offset += 2;
-        LE.setuint16(data, offset, type_1); offset += 2;
-        LE.setuint16(data, offset, len_1); offset += 2;
-        LE.setuint16(data, offset, type_2); offset += 2;
-        LE.setuint16(data, offset, len_2); offset += 2;
+        packet.writeInt(ihandle);
+        packet.writeShort(timeout);
+        packet.writeShort(count);
+        packet.writeShort(type_1);
+        packet.writeShort(len_1);
+        packet.writeShort(type_2);
+        packet.writeShort(len_2);
         break;
     }
   }

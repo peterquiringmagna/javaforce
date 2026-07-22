@@ -24,6 +24,11 @@ public class Packet {
     this.data = data;
     this.length = data.length;
   }
+  public Packet(byte[] data, byte endian) {
+    this.data = data;
+    this.length = data.length;
+    this.endian = endian;
+  }
   public Packet(byte[] data, int offset, int length) {
     this.data = data;
     this.offset = offset;
@@ -75,6 +80,10 @@ public class Packet {
   public void setEndian(byte value) {
     if (value < Endian.min || value > Endian.max) return;
     endian = value;
+  }
+
+  public byte peekByte() {
+    return data[offset];
   }
 
   public byte readByte() throws Exception {

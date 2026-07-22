@@ -1,5 +1,11 @@
 package javaforce.controls.ab;
 
+import java.util.*;
+
+import javaforce.*;
+import javaforce.controls.*;
+import javaforce.net.*;
+
 /** Allen Bradley Packet
  *   for ControlLogix/CompactLogix (CIP)
  *
@@ -18,22 +24,14 @@ package javaforce.controls.ab;
  * @author pquiring
  */
 
-import java.util.*;
-
-import javaforce.controls.*;
-import javaforce.net.*;
-
 public class ABPacket {
   public static byte[] makeConnectPacket(ABContext context) {
-    byte[] packet;
+    Packet packet = new Packet(Endian.L);
     ENIP ip = new ENIP(ENIP.CMD_GET_SESSION);
     ip.setSizes(0);
-    int size = ip.getSize();
-    packet = new byte[size];
-    int offset = 0;
     try {
-      ip.write(packet, offset, context); offset += ip.getSize();
-      return packet;
+      ip.write(packet, context);
+      return packet.toByteArray();
     } catch (Exception e) {
       e.printStackTrace();
       return null;
@@ -41,18 +39,15 @@ public class ABPacket {
   }
 
   public static byte[] makeReadPacket(String tag, ABContext context) {
-    byte[] packet;
+    Packet packet = new Packet(Endian.L);
     ENIP ip = new ENIP(ENIP.CMD_RR_DATA);
     CIP cip = new CIP(CIP.CMD_UNCONNECTED_SEND, CIP.SUB_CMD_READTAG);
     cip.setRead(tag);
     ip.setSizes(cip.getSize());
-    int size = ip.getSize() + cip.getSize();
-    packet = new byte[size];
-    int offset = 0;
     try {
-      ip.write(packet, offset, context); offset += ip.getSize();
-      cip.write(packet, offset);
-      return packet;
+      ip.write(packet, context);
+      cip.write(packet);
+      return packet.toByteArray();
     } catch (Exception e) {
       e.printStackTrace();
       return null;
@@ -60,18 +55,15 @@ public class ABPacket {
   }
 
   public static byte[] makeReadClockPacket(ABContext context) {
-    byte[] packet;
+    Packet packet = new Packet(Endian.L);
     ENIP ip = new ENIP(ENIP.CMD_RR_DATA);
     CIP cip = new CIP(CIP.CMD_UNCONNECTED_SEND, CIP.SUB_CMD_GET_ATTR);
     cip.setReadClock();
     ip.setSizes(cip.getSize());
-    int size = ip.getSize() + cip.getSize();
-    packet = new byte[size];
-    int offset = 0;
     try {
-      ip.write(packet, offset, context); offset += ip.getSize();
-      cip.write(packet, offset);
-      return packet;
+      ip.write(packet, context);
+      cip.write(packet);
+      return packet.toByteArray();
     } catch (Exception e) {
       e.printStackTrace();
       return null;
@@ -79,18 +71,15 @@ public class ABPacket {
   }
 
   public static byte[] makeWritePacket(String tag, byte type, byte[] data, ABContext context) {
-    byte[] packet;
+    Packet packet = new Packet(Endian.L);
     ENIP ip = new ENIP(ENIP.CMD_RR_DATA);
     CIP cip = new CIP(CIP.CMD_UNCONNECTED_SEND, CIP.SUB_CMD_WRITETAG);
     cip.setWrite(tag, type, data);
     ip.setSizes(cip.getSize());
-    int size = ip.getSize() + cip.getSize();
-    packet = new byte[size];
-    int offset = 0;
     try {
-      ip.write(packet, offset, context); offset += ip.getSize();
-      cip.write(packet, offset);
-      return packet;
+      ip.write(packet, context);
+      cip.write(packet);
+      return packet.toByteArray();
     } catch (Exception e) {
       e.printStackTrace();
       return null;
@@ -98,19 +87,16 @@ public class ABPacket {
   }
 
   public static byte[] makeWriteClockPacket(Calendar dt, ABContext context) {
-    byte[] packet;
+    Packet packet = new Packet(Endian.L);
     ENIP ip = new ENIP(ENIP.CMD_SEND_UNIT_DATA);
     CIP cip = new CIP(CIP.CMD_UNCONNECTED_SEND, CIP.SUB_CMD_SET_ATTR);
     cip.clock = dt.getTimeInMillis() * 1000L;
     cip.setWriteClock();
     ip.setSizes(cip.getSize());
-    int size = ip.getSize() + cip.getSize();
-    packet = new byte[size];
-    int offset = 0;
     try {
-      ip.write(packet, offset, context); offset += ip.getSize();
-      cip.write(packet, offset);
-      return packet;
+      ip.write(packet, context);
+      cip.write(packet);
+      return packet.toByteArray();
     } catch (Exception e) {
       e.printStackTrace();
       return null;
@@ -118,30 +104,24 @@ public class ABPacket {
   }
 
   public static byte[] decodePacket(byte[] data) {
+    Packet packet = new Packet(data, Endian.L);
     ENIP ip = new ENIP();
-    int offset = 0;
     try {
-      ip.read(data, offset); offset += ip.getSize();
+      ip.read(packet);
       if (ip.cmd == ENIP.CMD_GET_SESSION) return new byte[0];
-      switch (data[offset] & 0x7f) {
+      CIP cip = new CIP();
+      cip.read(packet);
+      switch (cip.cmd) {
         case CIP.SUB_CMD_READTAG: {
-          CIP cip = new CIP((byte)0, data[offset]);
-          cip.readReplyReadTag(data, offset);
           return cip.data;
         }
         case CIP.SUB_CMD_WRITETAG: {
-          CIP cip = new CIP((byte)0, data[offset]);
-          cip.readReplyWriteTag(data, offset);
           return new byte[0];
         }
         case CIP.SUB_CMD_GET_ATTR: {
-          CIP cip = new CIP((byte)0, data[offset]);
-          cip.readReplyGetAttrs(data, offset);
           return cip.attrs[0];
         }
         case CIP.SUB_CMD_SET_ATTR: {
-          CIP cip = new CIP((byte)0, data[offset]);
-          cip.readReplySetAttrs(data, offset);
           return new byte[0];
         }
       }

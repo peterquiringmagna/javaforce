@@ -191,7 +191,7 @@ public class Controller {
             replySize += read;
           } while (!ABPacket.isPacketComplete(Arrays.copyOf(reply, replySize)));
           ENIP ip = new ENIP();
-          ip.read(reply, 0);
+          ip.read(new Packet(reply, Endian.L));
           ab_context.session = ip.session;
         }
 

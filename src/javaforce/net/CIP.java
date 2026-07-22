@@ -1,7 +1,5 @@
 package javaforce.net;
 
-import javaforce.JFLog;
-import javaforce.LE;
 import javaforce.controls.ab.*;
 
 /** CIP : Connection Manager : Request
@@ -9,7 +7,7 @@ import javaforce.controls.ab.*;
  * @author pquiring
  */
 
-public class CIP {
+public class CIP implements SubPacket {
   //CIP header
   public byte cmd = 0;
   public byte count = 2;
@@ -53,6 +51,8 @@ public class CIP {
 
   public static final byte CMD_UNCONNECTED_SEND = 0x52;
 
+  public CIP() {}
+
   public CIP(byte _cmd, byte _sub_cmd) {
     cmd = _cmd;
     sub_cmd = _sub_cmd;
@@ -69,7 +69,7 @@ public class CIP {
     public byte type;
     //...
     public abstract int size();
-    public abstract void writeSegment(byte[] data, int offset);
+    public abstract void writeSegment(Packet packet) throws Exception;
   }
 
   private static class TagName extends TagSegment {
@@ -85,11 +85,11 @@ public class CIP {
       if (len % 2 != 0) len++;
       return len;
     }
-    public void writeSegment(byte[] data, int offset) {
-      data[offset++] = type;
-      data[offset++] = len;
+    public void writeSegment(Packet packet) throws Exception {
+      packet.writeByte(type);
+      packet.writeByte(len);
       for(int a=0;a<chars.length;a++) {
-        data[offset++] = chars[a];
+        packet.writeByte(chars[a]);
       }
     }
   }
@@ -103,9 +103,9 @@ public class CIP {
     public int size() {
       return 2;
     }
-    public void writeSegment(byte[] data, int offset) {
-      data[offset++] = type;
-      data[offset++] = idx;
+    public void writeSegment(Packet packet) throws Exception {
+      packet.writeByte(type);
+      packet.writeByte(idx);
     }
   }
 
@@ -119,10 +119,10 @@ public class CIP {
     public int size() {
       return 4;
     }
-    public void writeSegment(byte[] data, int offset) {
-      data[offset++] = type;
-      data[offset++] = pad;
-      LE.setuint16(data, offset, idx);
+    public void writeSegment(Packet packet) throws Exception {
+      packet.writeByte(type);
+      packet.writeByte(pad);
+      packet.writeShort(idx);
     }
   }
 
@@ -136,10 +136,10 @@ public class CIP {
     public int size() {
       return 6;
     }
-    public void writeSegment(byte[] data, int offset) {
-      data[offset++] = type;
-      data[offset++] = pad;
-      LE.setuint32(data, offset, idx);
+    public void writeSegment(Packet packet) throws Exception {
+      packet.writeByte(type);
+      packet.writeByte(pad);
+      packet.writeInt(idx);
     }
   }
 
@@ -186,48 +186,50 @@ public class CIP {
     return 0;
   }
 
-  public void write(byte[] packet, int offset) throws Exception {
-    JFLog.log("offset=" + offset);
-    packet[offset++] = cmd;
-    packet[offset++] = count;
-    packet[offset++] = path_1;
-    packet[offset++] = class_1;
-    packet[offset++] = path_2;
-    packet[offset++] = class_2;
+  public int getDataSize() {
+    return -1;
+  }
+
+  public void write(Packet packet) throws Exception {
+    packet.writeByte(cmd);
+    packet.writeByte(count);
+    packet.writeByte(path_1);
+    packet.writeByte(class_1);
+    packet.writeByte(path_2);
+    packet.writeByte(class_2);
     switch (cmd) {
       case CMD_UNCONNECTED_SEND:
-        packet[offset++] = ticktime;
-        packet[offset++] = ticktimeout;
-        LE.setuint16(packet, offset, sub_cmd_len); offset += 2;
-        packet[offset++] = sub_cmd;
-        packet[offset++] = data_words;
+        packet.writeByte(ticktime);
+        packet.writeByte(ticktimeout);
+        packet.writeShort(sub_cmd_len);
+        packet.writeByte(sub_cmd);
+        packet.writeByte(data_words);
         switch (sub_cmd) {
           case SUB_CMD_READTAG:
           case SUB_CMD_WRITETAG:
             if (segments != null) {
               for(int a=0;a<segments.length;a++) {
-                segments[a].writeSegment(packet, offset);
-                offset += segments[a].size();
+                segments[a].writeSegment(packet);
               }
             }
             if (data != null) {
-              System.arraycopy(data, 0, packet, offset, data.length); offset += data.length;
+              packet.write(data);
             }
             break;
           case SUB_CMD_GET_ATTR:
-            LE.setuint16(packet, offset, attr_count); offset+= 2;
-            LE.setuint16(packet, offset, attr_clock); offset+= 2;
+            packet.writeShort(attr_count);
+            packet.writeShort(attr_clock);
             break;
           case SUB_CMD_SET_ATTR:
-            LE.setuint16(packet, offset, attr_count); offset+= 2;
-            LE.setuint16(packet, offset, attr_clock); offset+= 2;
-            LE.setuint64(packet, offset, clock); offset+= 8;
+            packet.writeShort(attr_count);
+            packet.writeShort(attr_clock);
+            packet.writeLong(clock);
             break;
         }
-        packet[offset++] = route_size;
-        packet[offset++] = route_res;
-        packet[offset++] = route_seg;
-        packet[offset++] = route_addr;
+        packet.writeByte(route_size);
+        packet.writeByte(route_res);
+        packet.writeByte(route_seg);
+        packet.writeByte(route_addr);
         break;
     }
   }
@@ -324,13 +326,36 @@ public class CIP {
     sub_cmd_len = (short)(2 + size);
   }
 
-  public void readReplyReadTag(byte[] data, int offset) throws Exception {
-    cmd = data[offset++];
-    reserved1 = data[offset++];
-    reserved2 = data[offset++];
-    reserved3 = data[offset++];
-    type = data[offset++];
-    reserved = data[offset++];
+  public void read(Packet packet) throws Exception {
+    cmd = packet.readByte();
+    switch (cmd & 0x7f) {
+      case CIP.SUB_CMD_READTAG: {
+        readReplyReadTag(packet);
+        break;
+      }
+      case CIP.SUB_CMD_WRITETAG: {
+        readReplyWriteTag(packet);
+        break;
+      }
+      case CIP.SUB_CMD_GET_ATTR: {
+        readReplyGetAttrs(packet);
+        break;
+      }
+      case CIP.SUB_CMD_SET_ATTR: {
+        readReplySetAttrs(packet);
+        break;
+      }
+      default:
+        throw new Exception("CIP:Unknown cmd:" + cmd);
+    }
+  }
+
+  private void readReplyReadTag(Packet packet) throws Exception {
+    reserved1 = packet.readByte();
+    reserved2 = packet.readByte();
+    reserved3 = packet.readByte();
+    type = packet.readByte();
+    reserved = packet.readByte();
     int size = 0;
     switch (type) {
       case ABTypes.INT:
@@ -345,41 +370,37 @@ public class CIP {
         break;
     }
     this.data = new byte[size];
-    System.arraycopy(data, offset, this.data, 0, size);
+    packet.read(data);
   }
 
-  public void readReplyWriteTag(byte[] data, int offset) throws Exception {
-    cmd = data[offset++];
-    reserved1 = data[offset++];
-    reserved2 = data[offset++];
-    reserved3 = data[offset++];
+  private void readReplyWriteTag(Packet packet) throws Exception {
+    reserved1 = packet.readByte();
+    reserved2 = packet.readByte();
+    reserved3 = packet.readByte();
   }
 
-  public void readReplyGetAttrs(byte[] data, int offset) throws Exception {
-    cmd = data[offset++];
-    count = data[offset++];
-    path_1 = data[offset++];
-    class_1 = data[offset++];
-    path_2 = data[offset++];
-    class_2 = data[offset++];
-    short attr_count = (short)LE.getuint16(data, offset); offset += 2;
+  private void readReplyGetAttrs(Packet packet) throws Exception {
+    count = packet.readByte();
+    path_1 = packet.readByte();
+    class_1 = packet.readByte();
+    path_2 = packet.readByte();
+    class_2 = packet.readByte();
+    short attr_count = (short)packet.readShort();
     attrs = new byte[attr_count][];
     for(int i=0;i<attr_count;i++) {
       attrs[i] = new byte[8];
-      System.arraycopy(data, offset, attrs[i], 0, 8);
-      offset += 8;
+      packet.read(attrs[i]);
     }
   }
 
-  public void readReplySetAttrs(byte[] data, int offset) throws Exception {
-    cmd = data[offset++];
-    count = data[offset++];
-    short attr_count = (short)LE.getuint16(data, offset); offset += 2;
+  private void readReplySetAttrs(Packet packet) throws Exception {
+    count = packet.readByte();
+    short attr_count = (short)packet.readShort();
     attrs = new byte[attr_count][];
     for(int i=0;i<attr_count;i++) {
       attrs[i] = new byte[1];
-      attrs[i][0] = data[offset++];  //0 = success
-      offset++;  //padding ???
+      attrs[i][0] = packet.readByte();  //0 = success
+      packet.readByte();  //padding ???
     }
   }
 }
