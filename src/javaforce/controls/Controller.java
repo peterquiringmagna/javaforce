@@ -11,6 +11,7 @@ import javaforce.controls.mod.*;
 import javaforce.controls.ab.*;
 import javaforce.controls.jfc.*;
 import javaforce.media.*;
+import javaforce.net.*;
 
 import org.apache.plc4x.java.api.*;
 import org.apache.plc4x.java.api.messages.*;

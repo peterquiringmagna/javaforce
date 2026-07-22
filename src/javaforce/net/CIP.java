@@ -1,7 +1,8 @@
-package javaforce.controls.ab;
+package javaforce.net;
 
 import javaforce.JFLog;
 import javaforce.LE;
+import javaforce.controls.ab.*;
 
 /** CIP : Connection Manager : Request
  *

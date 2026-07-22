@@ -1,6 +1,7 @@
-package javaforce.controls.ab;
+package javaforce.net;
 
 import javaforce.LE;
+import javaforce.controls.ab.*;
 
 /** EtherNet/IP (Industrial Protocol)
  *
@@ -94,9 +95,15 @@ public class ENIP {
     }
   }
 
+  public void write(byte[] data, int offset) {
+    write(data,offset,null);
+  }
+  
   public void write(byte[] data, int offset, ABContext abcontext) {
-    session = abcontext.session;
-    context = abcontext.context;
+    if (abcontext != null) {
+      session = abcontext.session;
+      context = abcontext.context;
+    }
     //24 bytes
     LE.setuint16(data, offset, cmd); offset += 2;
     LE.setuint16(data, offset, len); offset += 2;
@@ -114,7 +121,9 @@ public class ENIP {
         LE.setuint16(data, offset, len_1); offset += 2;
         LE.setuint16(data, offset, type_2); offset += 2;
         LE.setuint16(data, offset, len_2); offset += 2;
-        abcontext.increment();
+        if (abcontext != null) {
+          abcontext.increment();
+        }
         break;
       case CMD_GET_SESSION:
         //4

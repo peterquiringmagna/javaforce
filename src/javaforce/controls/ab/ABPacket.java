@@ -21,6 +21,7 @@ package javaforce.controls.ab;
 import java.util.*;
 
 import javaforce.controls.*;
+import javaforce.net.*;
 
 public class ABPacket {
   public static byte[] makeConnectPacket(ABContext context) {
