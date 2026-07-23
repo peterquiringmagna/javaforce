@@ -47,8 +47,8 @@ public class S7Header implements SubPacket {
     param_length = (short)packet.readShort();
     data_length = (short)packet.readShort();
     if (rosctr == ROSCTR_ACK) {
-      //error_cls = packet.readByte()
-      //error_code = packet.readByte()
+      byte error_cls = packet.readByte();
+      byte error_code = packet.readByte();
     }
   }
   public void create(short _param_length, short _data_length) {
