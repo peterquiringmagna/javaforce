@@ -35,9 +35,9 @@ public class Restore {
       boolean ok = false;
       if (args.length == 4) {
         Controller.datatype dt = Controller.getDataType(args[3]);
-        c.write(args[1], data, dt);
+        ok = c.write(args[1], data, dt);
       } else {
-        c.write(args[1], data);
+        ok = c.write(args[1], data);
       }
       c.disconnect();
       if (ok) {
