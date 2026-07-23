@@ -38,10 +38,10 @@ public class S7Packet {
     TPKT tpkt = new TPKT();
     COTP cotp = new COTP();
 
+    cotp.createS7Connect();
     int size = tpkt.getSize() + cotp.getSize();
     tpkt.create((short)size);
     tpkt.write(packet);
-    cotp.createS7Connect();
     cotp.write(packet);
     return packet.toByteArray();
   }
@@ -55,10 +55,10 @@ public class S7Packet {
     S7Params params = new S7Params();
 
     params.makeConnect();
+    cotp.createS7Data();
     int size = tpkt.getSize() + cotp.getSize() + header.getSize() + params.getSize();
     tpkt.create((short)size);
     tpkt.write(packet);
-    cotp.createS7Data();
     cotp.write(packet);
     header.create((short)params.getSize(), (short)0);
     header.write(packet);
@@ -75,10 +75,10 @@ public class S7Packet {
     S7Params params = new S7Params();
 
     params.makeRead(s7);
+    cotp.createS7Data();
     int size = tpkt.getSize() + cotp.getSize() + header.getSize() + params.getSize();
     tpkt.create((short)size);
     tpkt.write(packet);
-    cotp.createS7Data();
     cotp.write(packet);
     header.create((short)params.getSize(), (short)0);
     header.write(packet);
@@ -95,10 +95,10 @@ public class S7Packet {
     S7Params params = new S7Params();
 
     params.makeRead(s7);
+    cotp.createS7Data();
     int size = tpkt.getSize() + cotp.getSize() + header.getSize() + params.getSize();
     tpkt.create((short)size);
     tpkt.write(packet);
-    cotp.createS7Data();
     cotp.write(packet);
     header.create((short)params.getSize(), (short)0);
     header.write(packet);
@@ -116,10 +116,10 @@ public class S7Packet {
     header.rosctr = S7Header.ROSCTR_USERDATA;
 
     params.makeReadTime();
+    cotp.createS7Data();
     int size = tpkt.getSize() + cotp.getSize() + header.getSize() + params.getSize();
     tpkt.create((short)size);
     tpkt.write(packet);
-    cotp.createS7Data();
     cotp.write(packet);
     header.create((short)(params.getSize() - 4), (short)4);
     header.write(packet);
@@ -136,10 +136,10 @@ public class S7Packet {
     S7Params params = new S7Params();
 
     params.makeWrite(type.block_type, type.block_number, type.data_type, type.offset, type.length, type.data);
+    cotp.createS7Data();
     int size = tpkt.getSize() + cotp.getSize() + header.getSize() + params.getSize();
     tpkt.create((short)size);
     tpkt.write(packet);
-    cotp.createS7Data();
     cotp.write(packet);
     header.create((short)(params.getSize() - 4 - type.data.length), (short)(4 + type.data.length));
     header.write(packet);
@@ -157,10 +157,10 @@ public class S7Packet {
     header.rosctr = S7Header.ROSCTR_USERDATA;
 
     params.makeWriteTime(dt);
+    cotp.createS7Data();
     int size = tpkt.getSize() + cotp.getSize() + header.getSize() + params.getSize();
     tpkt.create((short)size);
     tpkt.write(packet);
-    cotp.createS7Data();
     cotp.write(packet);
     header.create((short)(params.getSize() - 14), (short)14);
     header.write(packet);
