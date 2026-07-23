@@ -290,12 +290,12 @@ public class CIP implements SubPacket {
   }
 
   public void setReadClock() {
-//    class_1 = (byte)0x8b;
+    class_1 = (byte)0x8b;
     setLengths();
   }
 
   public void setWriteClock() {
-//    class_1 = (byte)0x8b;
+    class_1 = (byte)0x8b;
     setLengths();
   }
 
