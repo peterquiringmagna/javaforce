@@ -1,5 +1,6 @@
 package javaforce.controls.ab;
 
+import javaforce.net.ENIPContext;
 import java.util.*;
 
 import javaforce.*;
@@ -25,7 +26,7 @@ import javaforce.net.*;
  */
 
 public class ABPacket {
-  public static byte[] makeConnectPacket(ABContext context) {
+  public static byte[] makeConnectPacket(ENIPContext context) {
     Packet packet = new Packet(Endian.L);
     ENIP ip = new ENIP(ENIP.CMD_GET_SESSION);
     ip.setSizes(0);
@@ -38,7 +39,7 @@ public class ABPacket {
     }
   }
 
-  public static byte[] makeReadPacket(String tag, ABContext context) {
+  public static byte[] makeReadPacket(String tag, ENIPContext context) {
     Packet packet = new Packet(Endian.L);
     ENIP ip = new ENIP(ENIP.CMD_RR_DATA);
     CIP cip = new CIP(CIP.CMD_UNCONNECTED_SEND, CIP.SUB_CMD_READTAG);
@@ -54,7 +55,7 @@ public class ABPacket {
     }
   }
 
-  public static byte[] makeReadClockPacket(ABContext context) {
+  public static byte[] makeReadClockPacket(ENIPContext context) {
     Packet packet = new Packet(Endian.L);
     ENIP ip = new ENIP(ENIP.CMD_RR_DATA);
     CIP cip = new CIP(CIP.CMD_UNCONNECTED_SEND, CIP.SUB_CMD_GET_ATTR);
@@ -70,7 +71,7 @@ public class ABPacket {
     }
   }
 
-  public static byte[] makeWritePacket(String tag, byte type, byte[] data, ABContext context) {
+  public static byte[] makeWritePacket(String tag, byte type, byte[] data, ENIPContext context) {
     Packet packet = new Packet(Endian.L);
     ENIP ip = new ENIP(ENIP.CMD_RR_DATA);
     CIP cip = new CIP(CIP.CMD_UNCONNECTED_SEND, CIP.SUB_CMD_WRITETAG);
@@ -86,7 +87,7 @@ public class ABPacket {
     }
   }
 
-  public static byte[] makeWriteClockPacket(Calendar dt, ABContext context) {
+  public static byte[] makeWriteClockPacket(Calendar dt, ENIPContext context) {
     Packet packet = new Packet(Endian.L);
     ENIP ip = new ENIP(ENIP.CMD_SEND_UNIT_DATA);
     CIP cip = new CIP(CIP.CMD_UNCONNECTED_SEND, CIP.SUB_CMD_SET_ATTR);

@@ -1,5 +1,6 @@
 package javaforce.controls;
 
+import javaforce.net.ENIPContext;
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -42,7 +43,7 @@ public class Controller {
   private int micBufferSize;
   private short[] micBuffer;
   private int timeout = 3000;
-  private ABContext ab_context;
+  private ENIPContext ab_context;
 
   public static double rate;  //sample rate for all controllers (set before connecting to any controllers)
 
@@ -169,7 +170,7 @@ public class Controller {
       return true;
     }
     if (url.startsWith("AB:")) {
-      ab_context = new ABContext();
+      ab_context = new ENIPContext();
       plcType = ControllerType.AB;
       String host = url.substring(3);
       try {

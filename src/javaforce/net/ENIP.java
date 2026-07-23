@@ -1,7 +1,5 @@
 package javaforce.net;
 
-import javaforce.controls.ab.*;
-
 /** EtherNet/IP (Industrial Protocol).
  *
  * The ill named packet:
@@ -106,7 +104,7 @@ public class ENIP implements SubPacket {
     write(packet, null);
   }
 
-  public void write(Packet packet, ABContext abcontext) throws Exception {
+  public void write(Packet packet, ENIPContext abcontext) throws Exception {
     if (abcontext != null) {
       session = abcontext.session;
       context = abcontext.context;
