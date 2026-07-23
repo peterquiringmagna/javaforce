@@ -27,6 +27,9 @@ public class Backup {
       }
       byte data[] = c.read(args[1]);
       if (data == null) {
+        if (c.lastException != null) {
+          c.lastException.printStackTrace();
+        }
         throw new Exception("Error:null data");
       }
       c.disconnect();
