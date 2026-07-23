@@ -77,18 +77,8 @@ public class TestPLC {
       for(int a=0;a<bytes.length;a++) {
         data[a] = (byte)(int)Integer.valueOf(bytes[a], 16);
       }
-      Controller.datatype datatype = Controller.datatype.ANY;
-      switch (type) {
-        case "ANY": datatype = Controller.datatype.ANY; break;
-        case "INT8": datatype = Controller.datatype.INTEGER8; break;
-        case "INT16": datatype = Controller.datatype.INTEGER16; break;
-        case "INT32": datatype = Controller.datatype.INTEGER32; break;
-        case "INT64": datatype = Controller.datatype.INTEGER64; break;
-        case "FLOAT": datatype = Controller.datatype.FLOAT; break;
-        case "DOUBLE": datatype = Controller.datatype.DOUBLE; break;
-        default: System.out.println("Error:unknown data type"); System.exit(1); break;
-      }
-      if (!c.write(tag, data, datatype)) {
+      Controller.datatype dt = Controller.getDataType(type);
+      if (!c.write(tag, data, dt)) {
         System.out.println("write failed");
       } else {
         System.out.println("write ok");

@@ -882,4 +882,20 @@ public class Controller {
   public boolean isLE() {
     return !isBE();
   }
+
+  public static datatype getDataType(String type) {
+    datatype dt = null;
+    switch (type) {
+      case "ANY": dt = Controller.datatype.ANY; break;
+      case "INT8": dt = Controller.datatype.INTEGER8; break;
+      case "INT16": dt = Controller.datatype.INTEGER16; break;
+      case "INT32": dt = Controller.datatype.INTEGER32; break;
+      case "INT64": dt = Controller.datatype.INTEGER64; break;
+      case "FLOAT": dt = Controller.datatype.FLOAT; break;
+      case "DOUBLE": dt = Controller.datatype.DOUBLE; break;
+      case "BOOLEAN": dt = Controller.datatype.BOOLEAN; break;
+      default: System.out.println("Error:unknown data type:" + type); break;
+    }
+    return dt;
+  }
 }
