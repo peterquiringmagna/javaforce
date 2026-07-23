@@ -174,10 +174,10 @@ public class CIP implements SubPacket {
             }
             break;
           case SUB_CMD_GET_ATTR:
-            size += 8;
+            size += 4;
             break;
           case SUB_CMD_SET_ATTR:
-            size += 16;
+            size += 12;
             break;
         }
         size += 4;
