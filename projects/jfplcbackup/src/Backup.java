@@ -9,7 +9,7 @@ import javaforce.controls.*;
 
 public class Backup {
   private static void usage() {
-    System.out.println("jfplcbackup PLC_URL PLC_TAG fileout");
+    System.out.println("jfplcbackup PLC_URL PLC_TAG fileout [debug]");
     System.out.println("  URL = S7:IP  //Siemens");
     System.out.println("  URL = AB:IP  //Allen Bradley");
     System.out.println("  TAG = \"DB5.DBX0.0 BYTE 1000\"  //Siemens");
@@ -17,8 +17,13 @@ public class Backup {
     System.exit(1);
   }
   public static void main(String args[]) {
-    if (args.length != 3) {
+    if (args.length < 3) {
       usage();
+    }
+    if (args.length > 3) {
+      if (args[3].equals("debug")) {
+        Controller.debug = true;
+      }
     }
     try {
       Controller c = new Controller();

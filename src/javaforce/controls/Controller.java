@@ -432,7 +432,10 @@ public class Controller {
       return null;
     }
     s7 = S7Packet.decodePacket(Arrays.copyOf(reply, replySize));
-    if (s7 == null) return null;
+    if (s7 == null) {
+      if (debug) JFLog.log("S7Packet.decodePacket returned null");
+      return null;
+    }
     return s7.data;
   }
 
