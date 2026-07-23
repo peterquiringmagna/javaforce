@@ -9,7 +9,7 @@ import javaforce.controls.ab.*;
 
 public class CIP implements SubPacket {
   //CIP header
-  public byte cmd = 0;
+  public byte cmd = 0;  //0x80=reply 0x7f=cmd
   public byte count = 2;
   public byte path_1 = 0x20;  //8bit class segment
   public byte class_1 = 0x06;  //connection manager
@@ -346,7 +346,7 @@ public class CIP implements SubPacket {
         break;
       }
       default:
-        throw new Exception("CIP:Unknown cmd:" + cmd);
+        throw new Exception("CIP:Unknown cmd:0x" + Integer.toHexString(cmd & 0xff));
     }
   }
 

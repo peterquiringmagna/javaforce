@@ -111,7 +111,7 @@ public class ABPacket {
       if (ip.cmd == ENIP.CMD_GET_SESSION) return new byte[0];
       CIP cip = new CIP();
       cip.read(packet);
-      switch (cip.cmd) {
+      switch (cip.cmd & 0x7f) {
         case CIP.SUB_CMD_READTAG: {
           return cip.data;
         }
@@ -124,9 +124,13 @@ public class ABPacket {
         case CIP.SUB_CMD_SET_ATTR: {
           return new byte[0];
         }
+        default: {
+          JFLog.log("ABPacket:Unknown CIP cmd:0x" + Integer.toHexString(cip.cmd & 0xff));
+        }
       }
       return null;
     } catch (Exception e) {
+      e.printStackTrace();
       return null;
     }
   }
@@ -135,6 +139,7 @@ public class ABPacket {
     try {
       return decodePacket(data) != null;
     } catch (Exception e) {
+      e.printStackTrace();
       return false;
     }
   }
