@@ -442,26 +442,27 @@ public class Controller {
     synchronized(lock) {
       if (!connected) return null;
       switch (plcType) {
-      case ControllerType.PLC4J:
-        try {
-          PlcReadRequest.Builder reader = plcConn.readRequestBuilder();
-          switch (plcSubType) {
-            case ControllerType.S7: if (!addr.startsWith("%")) addr = "%" + addr; break;
+        case ControllerType.PLC4J: {
+          try {
+            PlcReadRequest.Builder reader = plcConn.readRequestBuilder();
+            switch (plcSubType) {
+              case ControllerType.S7: if (!addr.startsWith("%")) addr = "%" + addr; break;
+            }
+            //why is plcConn.parseTagAddress() @deprecated ?
+            PlcTag plcTag = plcDrv.prepareTag(addr);
+            reader.addTag("tag0", plcTag);
+            PlcReadResponse data = reader.build().execute().get(5000, TimeUnit.MILLISECONDS);
+            PlcValue value = data.getPlcValue("tag0");
+            if (value != null) {
+              return value.getRaw();
+            } else {
+              return empty;
+            }
+          } catch (Exception e) {
+            JFLog.log(e);
           }
-          //why is plcConn.parseTagAddress() @deprecated ?
-          PlcTag plcTag = plcDrv.prepareTag(addr);
-          reader.addTag("tag0", plcTag);
-          PlcReadResponse data = reader.build().execute().get(5000, TimeUnit.MILLISECONDS);
-          PlcValue value = data.getPlcValue("tag0");
-          if (value != null) {
-            return value.getRaw();
-          } else {
-            return empty;
-          }
-        } catch (Exception e) {
-          JFLog.log(e);
+          break;
         }
-        break;
         case ControllerType.S7: {
           S7Data s7 = S7Packet.decodeAddress(addr);
           if (s7 == null) return null;
