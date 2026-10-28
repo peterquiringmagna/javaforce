@@ -53,11 +53,30 @@ public class OPCUAClient {
       }
       client = createClient(host, port);
       println("connecting...");
-      client.connect();
+
+      // Milo's connect() is asynchronous. If you don't wait for the returned Future,
+      // the application can appear to stall or never complete the handshake because
+      // the client is still trying to negotiate the connection with the server.
+      client.connect().get(10, TimeUnit.SECONDS);
       return true;
+    } catch (TimeoutException e) {
+      JFLog.log("OPC UA connection to " + host + ":" + port + " timed out.");
+      disconnect();
+      return false;
     } catch (Exception e) {
       JFLog.log(e);
+      disconnect();
       return false;
+    }
+  }
+
+  public void disconnect() {
+    if (client != null) {
+      try {
+        client.disconnect().get(5, TimeUnit.SECONDS);
+      } catch (Exception e) {
+        JFLog.log(e);
+      }
     }
   }
 
