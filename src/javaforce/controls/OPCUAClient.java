@@ -1,4 +1,4 @@
-package javaforce.controls.opcua;
+package javaforce.controls;
 
 import java.util.*;
 import java.util.function.*;
